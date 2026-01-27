@@ -1,0 +1,9 @@
+﻿# IDEs / OS
+.vscode/
+.idea/
+*.suo
+.DS_Store
+
+# Logs / temp
+*.log
+*.tmp
