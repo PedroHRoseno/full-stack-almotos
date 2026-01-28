@@ -3,6 +3,8 @@
 Sistema completo full-stack para gestão de concessionária de veículos, desenvolvido com **Kotlin/Spring Boot** no backend e **Next.js/TypeScript** no frontend.
 
 > **Repositório pai + submodules:** Se este monorepo usa Git submodules (`almotos-front` e `vehicle-sales-manager-v2-kotlin` como submódulos), veja o guia **[SUBMODULES_GUIDE.md](./SUBMODULES_GUIDE.md)** para configurar, clonar e trabalhar no dia a dia.
+>
+> **Vercel e Railway:** Para o que alterar na Vercel e no Railway após as mudanças de configuração (YAML, perfis, variáveis), veja **[VERCEL_RAILWAY_ATUALIZADO.md](./VERCEL_RAILWAY_ATUALIZADO.md)**.
 
 ## 📋 Visão Geral
 
