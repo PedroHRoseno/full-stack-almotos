@@ -4,3 +4,6 @@
 [submodule "vehicle-sales-manager-v2-kotlin"]
 	path = vehicle-sales-manager-v2-kotlin
 	url = https://github.com/PedroHRoseno/vehicle-sales-manager-v2-kotlin.git
+[submodule "almotos-catalog"]
+	path = almotos-catalog
+	url = https://github.com/PedroHRoseno/almotos-catalog.git
