@@ -7,3 +7,7 @@
 # Logs / temp
 *.log
 *.tmp
+
+# Env (monorepo root safety)
+.env
+.env.*
