@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "almotos-ai": {
+      "command": "npx",
+      "args": ["tsx", "src/stdio.ts"],
+      "cwd": "almotos-ai"
+    }
+  }
+}

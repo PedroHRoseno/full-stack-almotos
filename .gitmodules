@@ -7,3 +7,9 @@
 [submodule "almotos-catalog"]
 	path = almotos-catalog
 	url = https://github.com/PedroHRoseno/almotos-catalog.git
+[submodule "almotos-ai-bot"]
+	path = almotos-ai-bot
+	url = https://github.com/PedroHRoseno/almotos-ai-bot.git
+[submodule "almotos-ai"]
+	path = almotos-ai
+	url = https://github.com/PedroHRoseno/almotos-ai.git
