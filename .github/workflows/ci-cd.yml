@@ -1,0 +1,595 @@
+# CI/CD — monorepo full-stack-almotos
+#
+# Submódulos e destinos (README):
+#   vehicle-sales-manager-v2-kotlin  Spring Boot / Kotlin  → Railway  (SoR)
+#   almotos-ai                       Node 20 / MCP         → Railway  (ACL)
+#   almotos-front                    Next.js 15            → Vercel   (admin)
+#   almotos-catalog                  Next.js 14            → Vercel   (vitrine)
+#   almotos-ai-bot                   FastAPI / Python 3.12 → Railway  (WhatsApp)
+#
+# Ordem de CD (dependências de runtime):
+#   Kotlin (SoR) → almotos-ai (MCP) → [front | catalog | bot] em paralelo
+#   Admin fala com o Kotlin; catálogo e bot falam só com almotos-ai (ADR-003).
+#
+# Quando roda
+#   PR ........... só CI das pastas alteradas
+#   push main/master ... CI + CD das pastas alteradas
+#   workflow_dispatch ... opcionalmente força todos os serviços
+#
+# Path filter: o pai versiona Gitlinks. Alterar um submodule (ponteiro SHA)
+# aparece como mudança em <pasta>/, não nos arquivos internos.
+#
+# Secrets / vars — ver o bloco no job "changes" e o README da conversa de setup.
+# Tokens NUNCA vão para logs (GitHub mascara secrets.*).
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "vehicle-sales-manager-v2-kotlin"
+      - "vehicle-sales-manager-v2-kotlin/**"
+      - "almotos-front"
+      - "almotos-front/**"
+      - "almotos-catalog"
+      - "almotos-catalog/**"
+      - "almotos-ai"
+      - "almotos-ai/**"
+      - "almotos-ai-bot"
+      - "almotos-ai-bot/**"
+      - ".github/workflows/ci-cd.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "vehicle-sales-manager-v2-kotlin"
+      - "vehicle-sales-manager-v2-kotlin/**"
+      - "almotos-front"
+      - "almotos-front/**"
+      - "almotos-catalog"
+      - "almotos-catalog/**"
+      - "almotos-ai"
+      - "almotos-ai/**"
+      - "almotos-ai-bot"
+      - "almotos-ai-bot/**"
+      - ".github/workflows/ci-cd.yml"
+  workflow_dispatch:
+    inputs:
+      force_all:
+        description: "Ignorar path filter — CI (e CD em main/master) em todos os serviços"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-cd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  JAVA_VERSION: "17"
+  PYTHON_VERSION: "3.12"
+  GRADLE_VERSION: "8.5"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 0. Quais pastas mudaram
+  # ---------------------------------------------------------------------------
+  changes:
+    name: Detectar alterações
+    runs-on: ubuntu-latest
+    outputs:
+      kotlin: ${{ steps.eval.outputs.kotlin }}
+      front: ${{ steps.eval.outputs.front }}
+      catalog: ${{ steps.eval.outputs.catalog }}
+      ai: ${{ steps.eval.outputs.ai }}
+      bot: ${{ steps.eval.outputs.bot }}
+      workflow: ${{ steps.eval.outputs.workflow }}
+    steps:
+      - name: Checkout (histórico para diff; sem submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Filtrar paths
+        id: filter
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.force_all) }}
+        uses: dorny/paths-filter@v3
+        with:
+          # Inclui o gitlink do submodule e qualquer arquivo interno.
+          filters: |
+            kotlin:
+              - "vehicle-sales-manager-v2-kotlin"
+              - "vehicle-sales-manager-v2-kotlin/**"
+            front:
+              - "almotos-front"
+              - "almotos-front/**"
+            catalog:
+              - "almotos-catalog"
+              - "almotos-catalog/**"
+            ai:
+              - "almotos-ai"
+              - "almotos-ai/**"
+            bot:
+              - "almotos-ai-bot"
+              - "almotos-ai-bot/**"
+            workflow:
+              - ".github/workflows/ci-cd.yml"
+
+      - name: Resolver outputs
+        id: eval
+        env:
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force_all }}
+          F_KOTLIN: ${{ steps.filter.outputs.kotlin }}
+          F_FRONT: ${{ steps.filter.outputs.front }}
+          F_CATALOG: ${{ steps.filter.outputs.catalog }}
+          F_AI: ${{ steps.filter.outputs.ai }}
+          F_BOT: ${{ steps.filter.outputs.bot }}
+          F_WF: ${{ steps.filter.outputs.workflow }}
+        run: |
+          set -euo pipefail
+          if [ "$FORCE" = "true" ]; then
+            echo "kotlin=true"   >> "$GITHUB_OUTPUT"
+            echo "front=true"    >> "$GITHUB_OUTPUT"
+            echo "catalog=true"  >> "$GITHUB_OUTPUT"
+            echo "ai=true"       >> "$GITHUB_OUTPUT"
+            echo "bot=true"      >> "$GITHUB_OUTPUT"
+            echo "workflow=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "kotlin=${F_KOTLIN:-false}"   >> "$GITHUB_OUTPUT"
+            echo "front=${F_FRONT:-false}"     >> "$GITHUB_OUTPUT"
+            echo "catalog=${F_CATALOG:-false}" >> "$GITHUB_OUTPUT"
+            echo "ai=${F_AI:-false}"           >> "$GITHUB_OUTPUT"
+            echo "bot=${F_BOT:-false}"         >> "$GITHUB_OUTPUT"
+            echo "workflow=${F_WF:-false}"     >> "$GITHUB_OUTPUT"
+          fi
+
+  # ---------------------------------------------------------------------------
+  # CI — um job por stack. workflow.yml alterado ⇒ revalida todos.
+  # ---------------------------------------------------------------------------
+  ci-kotlin:
+    name: CI · Kotlin (SoR)
+    needs: changes
+    if: needs.changes.outputs.kotlin == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: vehicle-sales-manager-v2-kotlin
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      # gradle-wrapper.jar não está versionado neste submodule; o Dockerfile
+      # usa Gradle 8.5. CI segue a mesma versão (equivalente a ./gradlew build).
+      - name: Setup Gradle ${{ env.GRADLE_VERSION }}
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Build e testes
+        run: gradle build --no-daemon --stacktrace
+
+  ci-front:
+    name: CI · almotos-front (Next.js)
+    needs: changes
+    if: needs.changes.outputs.front == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: almotos-front
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: almotos-front/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+        run: npm run build
+
+  ci-catalog:
+    name: CI · almotos-catalog (Next.js)
+    needs: changes
+    if: needs.changes.outputs.catalog == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: almotos-catalog
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: almotos-catalog/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # generateStaticParams / sitemap engolem falha de fetch; URL dummy só
+      # satisfaz o guardrail de produção (ALMOTOS_AI_URL obrigatória).
+      - name: Build
+        env:
+          ALMOTOS_AI_URL: http://127.0.0.1:9
+          NEXT_PUBLIC_SITE_URL: http://localhost:3001
+          NEXT_PUBLIC_WHATSAPP_URL: https://wa.me/5500000000000
+        run: npm run build
+
+  ci-ai:
+    name: CI · almotos-ai (MCP)
+    needs: changes
+    if: needs.changes.outputs.ai == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: almotos-ai
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: almotos-ai/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      # Sem script de lint no package.json — tsc strict é o gate (npm run build).
+      - name: Typecheck / build
+        run: npm run build
+
+  ci-bot:
+    name: CI · almotos-ai-bot (FastAPI)
+    needs: changes
+    if: needs.changes.outputs.bot == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: almotos-ai-bot
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: almotos-ai-bot/requirements.txt
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Compile bytecode
+        run: python -m compileall -q app
+
+      - name: Import smoke (sem credenciais Meta)
+        env:
+          ALMOTOS_AI_URL: http://localhost:3100
+          DEBUG: "true"
+        run: python -c "from app.main import app; assert app.title"
+
+  # Gate único para branch protection (jobs skipped não bloqueiam o PR).
+  ci-gate:
+    name: CI · gate
+    needs: [changes, ci-kotlin, ci-front, ci-catalog, ci-ai, ci-bot]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Avaliar resultados
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          KOTLIN: ${{ needs.ci-kotlin.result }}
+          FRONT: ${{ needs.ci-front.result }}
+          CATALOG: ${{ needs.ci-catalog.result }}
+          AI: ${{ needs.ci-ai.result }}
+          BOT: ${{ needs.ci-bot.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CHANGES" != "success" ]; then
+            echo "Job 'changes' falhou: $CHANGES"
+            exit 1
+          fi
+          for name_and_result in "ci-kotlin:$KOTLIN" "ci-front:$FRONT" "ci-catalog:$CATALOG" "ci-ai:$AI" "ci-bot:$BOT"; do
+            result="${name_and_result##*:}"
+            name="${name_and_result%%:*}"
+            case "$result" in
+              success|skipped) echo "OK  $name ($result)" ;;
+              *) echo "FAIL $name ($result)"; exit 1 ;;
+            esac
+          done
+
+  # ---------------------------------------------------------------------------
+  # CD — só push/dispatch em main|master, e só se o CI daquele serviço passou.
+  #
+  # Vercel: CLI oficial (mesmo fluxo de vercel/examples/ci-cd/github-actions).
+  # Railway: a org railwayapp não publica `railway/cli-action` no Marketplace.
+  #          O equivalente oficial é a CLI (@railway/cli) + RAILWAY_TOKEN
+  #          (blog Railway / docs CLI). Flags --project/--environment/--service
+  #          são obrigatórias no CLI 5.3+ com project token.
+  # ---------------------------------------------------------------------------
+  cd-kotlin:
+    name: CD · Kotlin → Railway
+    needs: [changes, ci-kotlin]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      needs.changes.outputs.kotlin == 'true' &&
+      needs.ci-kotlin.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_KOTLIN || secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
+      RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_KOTLIN || secrets.RAILWAY_SERVICE_KOTLIN }}
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        working-directory: vehicle-sales-manager-v2-kotlin
+        run: |
+          set -euo pipefail
+          : "${RAILWAY_TOKEN:?Defina RAILWAY_TOKEN (ou RAILWAY_TOKEN_KOTLIN) em Settings → Secrets}"
+          : "${RAILWAY_SERVICE:?Defina RAILWAY_SERVICE_KOTLIN em Variables ou Secrets}"
+          railway up --ci \
+            ${RAILWAY_PROJECT_ID:+--project "$RAILWAY_PROJECT_ID"} \
+            ${RAILWAY_ENVIRONMENT:+--environment "$RAILWAY_ENVIRONMENT"} \
+            --service "$RAILWAY_SERVICE"
+
+  cd-ai:
+    name: CD · almotos-ai → Railway
+    needs: [changes, ci-ai, cd-kotlin]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      needs.changes.outputs.ai == 'true' &&
+      needs.ci-ai.result == 'success' &&
+      (needs.changes.outputs.kotlin != 'true' || needs.cd-kotlin.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_AI || secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
+      RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_AI || secrets.RAILWAY_SERVICE_AI }}
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        working-directory: almotos-ai
+        run: |
+          set -euo pipefail
+          : "${RAILWAY_TOKEN:?Defina RAILWAY_TOKEN (ou RAILWAY_TOKEN_AI) em Settings → Secrets}"
+          : "${RAILWAY_SERVICE:?Defina RAILWAY_SERVICE_AI em Variables ou Secrets}"
+          railway up --ci \
+            ${RAILWAY_PROJECT_ID:+--project "$RAILWAY_PROJECT_ID"} \
+            ${RAILWAY_ENVIRONMENT:+--environment "$RAILWAY_ENVIRONMENT"} \
+            --service "$RAILWAY_SERVICE"
+
+  cd-front:
+    name: CD · almotos-front → Vercel
+    needs: [changes, ci-front, cd-kotlin]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      needs.changes.outputs.front == 'true' &&
+      needs.ci-front.result == 'success' &&
+      (needs.changes.outputs.kotlin != 'true' || needs.cd-kotlin.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: almotos-front
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID || secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_FRONT || secrets.VERCEL_PROJECT_ID_FRONT }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull env de produção
+        run: |
+          : "${VERCEL_TOKEN:?Defina VERCEL_TOKEN}"
+          : "${VERCEL_ORG_ID:?Defina VERCEL_ORG_ID}"
+          : "${VERCEL_PROJECT_ID:?Defina VERCEL_PROJECT_ID_FRONT}"
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build (prebuilt)
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy produção
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  cd-catalog:
+    name: CD · almotos-catalog → Vercel
+    needs: [changes, ci-catalog, cd-ai]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      needs.changes.outputs.catalog == 'true' &&
+      needs.ci-catalog.result == 'success' &&
+      (needs.changes.outputs.ai != 'true' || needs.cd-ai.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: almotos-catalog
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID || secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_CATALOG || secrets.VERCEL_PROJECT_ID_CATALOG }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull env de produção
+        run: |
+          : "${VERCEL_TOKEN:?Defina VERCEL_TOKEN}"
+          : "${VERCEL_ORG_ID:?Defina VERCEL_ORG_ID}"
+          : "${VERCEL_PROJECT_ID:?Defina VERCEL_PROJECT_ID_CATALOG}"
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build (prebuilt)
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy produção
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+  cd-bot:
+    name: CD · almotos-ai-bot → Railway
+    needs: [changes, ci-bot, cd-ai]
+    if: |
+      always() &&
+      !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+      needs.changes.outputs.bot == 'true' &&
+      needs.ci-bot.result == 'success' &&
+      (needs.changes.outputs.ai != 'true' || needs.cd-ai.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_BOT || secrets.RAILWAY_TOKEN }}
+      RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
+      RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_BOT || secrets.RAILWAY_SERVICE_BOT }}
+    steps:
+      - name: Checkout com submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        working-directory: almotos-ai-bot
+        run: |
+          set -euo pipefail
+          : "${RAILWAY_TOKEN:?Defina RAILWAY_TOKEN (ou RAILWAY_TOKEN_BOT) em Settings → Secrets}"
+          : "${RAILWAY_SERVICE:?Defina RAILWAY_SERVICE_BOT em Variables ou Secrets}"
+          railway up --ci \
+            ${RAILWAY_PROJECT_ID:+--project "$RAILWAY_PROJECT_ID"} \
+            ${RAILWAY_ENVIRONMENT:+--environment "$RAILWAY_ENVIRONMENT"} \
+            --service "$RAILWAY_SERVICE"

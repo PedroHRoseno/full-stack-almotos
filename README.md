@@ -1,198 +1,195 @@
-# AlMotos - Sistema de Gerenciamento de Veículos
+# AL Motos
 
-Sistema completo full-stack para gestão de concessionária de veículos, desenvolvido com **Kotlin/Spring Boot** no backend e **Next.js/TypeScript** no frontend.
+Monorepo da concessionária **AL Motos** (Caruaru/PE): painel interno, catálogo público, orquestrador de IA (MCP) e bot de WhatsApp.
 
-> **Repositório pai + submodules:** Se este monorepo usa Git submodules (`almotos-front` e `vehicle-sales-manager-v2-kotlin` como submódulos), veja o guia **[SUBMODULES_GUIDE.md](./SUBMODULES_GUIDE.md)** para configurar, clonar e trabalhar no dia a dia.
->
-> **Vercel e Railway:** Para o que alterar na Vercel e no Railway após as mudanças de configuração (YAML, perfis, variáveis), veja **[VERCEL_RAILWAY_ATUALIZADO.md](./VERCEL_RAILWAY_ATUALIZADO.md)**.
+Cada pasta de produto é um **Git submodule** com repositório próprio. Este repositório pai só guarda a composição e a governança.
 
-## 📋 Visão Geral
-
-O AlMotos é um sistema de gestão completo que permite:
-- Cadastro e gerenciamento de veículos
-- Cadastro e gerenciamento de parceiros (clientes e fornecedores)
-- Registro de compras de veículos
-- Registro de vendas de veículos
-- Registro de trocas de veículos
-- Relatórios financeiros e dashboard
-
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```
-full-stack-almotos/
-├── vehicle-sales-manager-v2-kotlin/  # Backend (Kotlin/Spring Boot)
-│   ├── src/
-│   ├── docker-compose.yml
-│   └── README.md
-├── almotos-front/                    # Frontend (Next.js/TypeScript)
-│   ├── src/
-│   └── README.md
-└── vehicle-sales-manager/            # Backend antigo (Java - referência)
+Cliente (site / WhatsApp)              Operador (painel)
+        │                                      │
+        ▼                                      ▼
+almotos-catalog  ou  almotos-ai-bot      almotos-front
+        │                               (proxy + JWT)
+        ▼                                      │
+   almotos-ai                                  │
+   MCP + POST /v1/chat                         │
+        │                                      │
+        └──────────────┬───────────────────────┘
+                       ▼
+        vehicle-sales-manager-v2-kotlin  (SoR)
+                       │
+                       ▼
+                   PostgreSQL
 ```
 
-## 🚀 Tecnologias
+- **Kotlin** é o System of Record: único serviço com PostgreSQL, regras de estoque e JWT do painel.
+- **`almotos-ai`** é a anti-corruption layer: prompts, tools Zod e chat. Catálogo e WhatsApp **não** chamam OpenAI nem o banco.
+- **Admin não passa pelo MCP.** O painel fala com o Kotlin via `/api/proxy`.
+- Tools públicas (`searchInventory`, `getVehiclePhotos`, `handoffToSeller`) são só leitura e **não** devolvem placa, CPF, custo nem preço. Negociação = handoff humano (`wa.me`).
 
-### Backend
-- **Kotlin** 1.9+
-- **Spring Boot** 3.2.0
-- **Spring Data JPA**
-- **PostgreSQL** 15
-- **Docker Compose**
-- **SpringDoc OpenAPI** (Swagger)
+Fluxo de IA: `Cliente → catálogo ou bot → almotos-ai → tools → GET /api/public/vehicles → Postgres`.
 
-### Frontend
-- **Next.js** 15 (App Router)
-- **React** 19
-- **TypeScript**
-- **Tailwind CSS**
-- **Shadcn UI**
-- **React Hook Form** + **Zod**
-- **Radix UI**
+Guardrails: [`CLAUDE.md`](./CLAUDE.md).
 
-## 📦 Pré-requisitos
+## Submódulos
 
-- **Java 17+**
-- **Node.js 18+** e npm
-- **Docker** e **Docker Compose**
-- **Gradle** (ou usar o wrapper incluído)
+| Pasta | Papel | Stack | Porta | Deploy típico |
+|---|---|---|---|---|
+| [`vehicle-sales-manager-v2-kotlin`](./vehicle-sales-manager-v2-kotlin) | SoR — REST, JWT, catálogo público | Kotlin, Spring Boot 3.2, PostgreSQL 15 | `8080` | Railway |
+| [`almotos-front`](./almotos-front) | Painel admin | Next.js 15, React 19 | `3000` | Vercel |
+| [`almotos-catalog`](./almotos-catalog) | Vitrine + assistente (Generative UI) | Next.js 14, React 18 | `3001` | Vercel |
+| [`almotos-ai`](./almotos-ai) | MCP Server + `/v1/chat` | Node 20, TypeScript, Express, Zod | `3100` | Railway |
+| [`almotos-ai-bot`](./almotos-ai-bot) | Adapter WhatsApp (Meta Cloud API) | FastAPI, Python 3.12 | `8000` | Railway |
 
-## 🛠️ Instalação e Execução
+Remotes: `vehicle-sales-manager-v2-kotlin`, `almotos-front`, `almotos-catalog`, `almotos-ai`, `almotos-ai-bot` em `https://github.com/PedroHRoseno/`.
 
-### 1. Backend (Kotlin)
+## Clonar
 
 ```bash
-# Navegar para o diretório do backend
+git clone --recurse-submodules <url-deste-repositorio>
+cd full-stack-almotos
+```
+
+Clone já feito sem submódulos:
+
+```bash
+git submodule update --init --recursive
+```
+
+Trabalho do dia a dia: commit **dentro** do submodule; no pai, commit só o ponteiro (SHA).
+
+## Pré-requisitos
+
+- Java 17+, Docker Compose, wrapper `./gradlew` (Windows: `gradlew.bat`)
+- Node.js 20+ e npm
+- Python 3.12+ (bot)
+- `OPENAI_API_KEY` **somente** no `almotos-ai`
+
+## Rodar localmente
+
+Ordem: Postgres → Kotlin → `almotos-ai` → painel / catálogo / bot.
+
+### 1. Kotlin
+
+```bash
 cd vehicle-sales-manager-v2-kotlin
-
-# Iniciar o PostgreSQL com Docker Compose
-docker-compose up -d
-
-# Compilar o projeto
-./gradlew build
-
-# Executar a aplicação
+docker compose up -d
 ./gradlew bootRun
 ```
 
-O backend estará disponível em `http://localhost:8080`
+- API: http://localhost:8080
+- Swagger: http://localhost:8080/swagger-ui.html
+- Público (sem JWT): `GET /api/public/vehicles`  
+  Query opcional: `?brand=HONDA&maxKm=20000&yearMin=2020`  
+  Sem query o JSON é o de sempre (marca, modelo, ano, cor, km, fotos, descrição — **sem placa e sem preço**).
 
-**Documentação Swagger**: `http://localhost:8080/swagger-ui.html`
-
-### 2. Frontend (Next.js)
+### 2. `almotos-ai`
 
 ```bash
-# Navegar para o diretório do frontend
-cd almotos-front
-
-# Instalar dependências
+cd almotos-ai
+cp .env.example .env
+# OPENAI_API_KEY e KOTLIN_BASE_URL=http://localhost:8080
 npm install
-
-# Criar arquivo de configuração
-echo "NEXT_PUBLIC_API_URL=http://localhost:8080" > .env.local
-
-# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
-O frontend estará disponível em `http://localhost:3000`
+| Rota | Uso |
+|------|-----|
+| `GET /health` | Healthcheck |
+| `GET /v1/inventory` | Estoque projetado (`slug`, `colorLabel`, sem PII) |
+| `POST /v1/chat` | Agent runtime (`channel`: `web` ou `whatsapp`) |
+| `POST /mcp` | MCP Streamable HTTP |
+| `npm run mcp:stdio` | MCP no Cursor |
 
-## 📚 Documentação
+### 3. Painel (`almotos-front`)
 
-- **Backend**: Veja [vehicle-sales-manager-v2-kotlin/README.md](./vehicle-sales-manager-v2-kotlin/README.md)
-- **Frontend**: Veja [almotos-front/README.md](./almotos-front/README.md)
+```bash
+cd almotos-front
+echo NEXT_PUBLIC_API_URL=http://localhost:8080 > .env.local
+npm install
+npm run dev
+```
 
-## 🔑 Funcionalidades Principais
+http://localhost:3000 — o browser usa `/api/proxy/*` → Kotlin.
 
-### Backend
-- ✅ API REST completa com paginação
-- ✅ Busca em tempo real (CPF, nome, placa)
-- ✅ Regras de negócio automatizadas:
-  - Compra → Veículo fica DISPONIVEL
-  - Venda → Veículo fica VENDIDO
-  - Troca → Veículo entrada DISPONIVEL, saída VENDIDO
-- ✅ Relatórios financeiros com filtros de data
-- ✅ Integração com PostgreSQL via Docker
-- ✅ Documentação Swagger automática
+### 4. Catálogo (`almotos-catalog`)
 
-### Frontend
-- ✅ Dashboard com indicadores em tempo real
-- ✅ Tabelas paginadas com busca
-- ✅ Formulários com validação completa
-- ✅ Modais para cadastro/edição
-- ✅ Integração ViaCEP para endereços
-- ✅ Componentes reutilizáveis (SearchableSelect)
-- ✅ UX moderna e responsiva
+Porta **3001** para não colidir com o admin:
 
-## 📊 Estrutura de Dados
+```bash
+cd almotos-catalog
+cp .env.example .env.local
+# ALMOTOS_AI_URL=http://localhost:3100
+npm install
+npx next dev -p 3001
+```
 
-### Entidades Principais
+http://localhost:3001 — listagem via BFF `/api/catalog/vehicles`; chat via `/api/chat` → `almotos-ai`.  
+O browser **não** chama o Kotlin. Em produção `ALMOTOS_AI_URL` é obrigatória; `KOTLIN_BASE_URL` só como fallback em dev.
 
-- **Partner** (Parceiro): Clientes e fornecedores
-- **Vehicle** (Veículo): Motos/veículos cadastrados
-- **Sale** (Venda): Registro de vendas
-- **Purchase** (Compra): Registro de compras
-- **Exchange** (Troca): Registro de trocas
-- **Address** (Endereço): Endereços dos parceiros
+Não use `NEXT_PUBLIC_API_BASE_URL` (nome antigo, o código não lê).
 
-## 🔄 Fluxo de Trabalho
+### 5. Bot (`almotos-ai-bot`)
 
-1. **Cadastro de Parceiro**: Cliente ou fornecedor
-2. **Cadastro de Veículo**: Pode ser feito isoladamente ou durante uma compra
-3. **Registro de Compra**: Vincula veículo a fornecedor, status → DISPONIVEL
-4. **Registro de Venda**: Vincula veículo a cliente, status → VENDIDO
-5. **Registro de Troca**: Troca entre dois veículos com cálculo de diferença
+```bash
+cd almotos-ai-bot
+cp .env.example .env
+# ALMOTOS_AI_URL=http://localhost:3100 + credenciais Meta
+python -m venv .venv
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## 🧪 Testando o Sistema
+- `GET /health` · webhook `GET/POST /webhook`
+- Em prod: `WHATSAPP_APP_SECRET` (assinatura `X-Hub-Signature-256`). Sem secret e `DEBUG=false`, o POST retorna 403.
+- Não configure `OPENAI_API_KEY` nem `VEHICLES_API_URL` neste serviço.
 
-1. **Inicie o backend** (porta 8080)
-2. **Inicie o frontend** (porta 3000)
-3. **Acesse** `http://localhost:3000`
-4. **Cadastre um parceiro** em "Clientes"
-5. **Cadastre um veículo** em "Veículos"
-6. **Registre uma compra** em "Compras"
-7. **Registre uma venda** em "Vendas"
-8. **Visualize o dashboard** para ver os indicadores
+## Variáveis (resumo)
 
-## 📝 Notas Importantes
+| Serviço | Obrigatórias (local) |
+|---------|----------------------|
+| Kotlin | perfil `local` + Postgres do Compose |
+| `almotos-ai` | `KOTLIN_BASE_URL`, `OPENAI_API_KEY`, `SELLER_*_PHONE` |
+| Catálogo | `ALMOTOS_AI_URL`; `NEXT_PUBLIC_WHATSAPP_URL`; `NEXT_PUBLIC_SITE_URL` |
+| Admin | `NEXT_PUBLIC_API_URL` (Kotlin) |
+| Bot | `ALMOTOS_AI_URL`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` |
 
-- O backend usa **PostgreSQL** via Docker Compose
-- O frontend usa **proxy** para evitar problemas de CORS
-- Todos os endpoints suportam **paginação** (padrão: 20 itens)
-- A busca é **case-insensitive** e suporta busca parcial
-- Os DTOs usam **camelCase** para compatibilidade com TypeScript
+`OPENAI_API_KEY` não vai para Vercel do catálogo. Redis no `almotos-ai` (`REDIS_URL`) é só memória de thread WhatsApp, não espelho de estoque.
 
-## 🐛 Troubleshooting
+## Funcionalidades
 
-### Backend não inicia
-- Verifique se o PostgreSQL está rodando: `docker-compose ps`
-- Verifique as configurações em `application.properties`
-- Veja os logs: `docker-compose logs -f postgres`
+**Painel + Kotlin:** JWT, veículos/parceiros, compra/venda/troca (estoque: compra → `DISPONIVEL`, venda → `VENDIDO`), custos, caixa, relatórios, upload S3, publicação no catálogo (`published`).
 
-### Frontend não conecta ao backend
-- Verifique se o backend está rodando na porta 8080
-- Confirme o arquivo `.env.local` com `NEXT_PUBLIC_API_URL=http://localhost:8080`
-- Reinicie o servidor Next.js após alterar `.env.local`
+**Catálogo + IA:** vitrine das motos `DISPONIVEL` + `published=true`, `/motos/[slug]`, filtros, assistente com grid gerado por tool, handoff WhatsApp.
 
-### Erro de CORS
-- O backend já está configurado com CORS para `http://localhost:3000`
-- Verifique se o proxy está configurado no `next.config.ts`
+## Entidades (SoR)
 
-## 📄 Licença
+Partner, Vehicle, Purchase, Sale, Exchange, VehicleCost, StoreTransaction, User.
 
-Este projeto é privado e de uso interno.
+## Documentação
 
-## 👥 Desenvolvimento
+- ADRs / agentes: [`CLAUDE.md`](./CLAUDE.md)
+- Changelog: [`docs/ai/CHANGELOG.md`](./docs/ai/CHANGELOG.md)
+- [`vehicle-sales-manager-v2-kotlin/README.md`](./vehicle-sales-manager-v2-kotlin/README.md)
+- [`almotos-front/README.md`](./almotos-front/README.md)
+- [`almotos-ai/README.md`](./almotos-ai/README.md)
+- [`almotos-catalog/README.md`](./almotos-catalog/README.md)
+- Bot: [`almotos-ai-bot/RAILWAY.md`](./almotos-ai-bot/RAILWAY.md)
 
-- **Backend**: Kotlin/Spring Boot
-- **Frontend**: Next.js/TypeScript
-- **Banco de Dados**: PostgreSQL
-- **Containerização**: Docker Compose
+## Troubleshooting
 
-## 🔮 Próximas Melhorias
+**Kotlin não sobe** — `docker compose ps` na pasta do backend.
 
-- [ ] Autenticação e autorização
-- [ ] Edição de veículos
-- [ ] Exportação de relatórios (PDF/Excel)
-- [ ] Gráficos no dashboard
-- [ ] Testes automatizados
-- [ ] CI/CD pipeline
+**Painel sem API** — Kotlin na `8080`, `NEXT_PUBLIC_API_URL=http://localhost:8080`, JWT válido.
+
+**Catálogo vazio / chat 503** — `almotos-ai` na `3100`, `ALMOTOS_AI_URL` no `.env.local`, motos publicadas. Em prod, 502 `fetch failed` costuma ser env antiga (`NEXT_PUBLIC_API_BASE_URL`) ou AI inacessível.
+
+**Bot não responde** — `ALMOTOS_AI_URL`; App Secret em prod; não recolocar `VEHICLES_API_*`.
+
+**Submódulo vazio** — `git submodule update --init --recursive`.
+
+## Licença
+
+Projeto privado, de uso interno.
