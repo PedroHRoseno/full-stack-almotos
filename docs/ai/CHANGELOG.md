@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-17 — Chat web: texto curto + Generative UI (sem dump Markdown)
+
+- **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `almotos-catalog/src/components/assistant/assistant-widget.tsx`
+- **Por que:** O modelo reescrevia o estoque em Markdown (`![foto]`, listas, `catalogUrl`) e o widget pintava a string crua, colapsando quebras. O canal site agora proíbe esse dump; a UI esconde o parágrafo se a tool já renderizou cards/fotos/handoff. Contrato das tools não muda (ADR-003).
+
 ## 2026-08-15 — Pipeline CI/CD no repositório pai (GitHub Actions)
 
 - **Arquivos modificados:** `.github/workflows/ci-cd.yml`
