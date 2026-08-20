@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — CI: checkout de um submodule por job
+
+- **Arquivos modificados:** `.github/workflows/ci-cd.yml`
+- **Por que:** `submodules: recursive` clonava todos os filhos. Fine-grained `GH_PAT` sem `almotos-backend` na allowlist devolve 403 (`Write access to repository not granted`) e derruba também o CI do bot/front. Cada job agora faz `git submodule update --init` só da pasta que usa.
+
 ## 2026-08-20 — Bot: webhook Chatwoot (caixa omnichannel)
 
 - **Arquivos modificados:** `almotos-ai-bot/app/models/chatwoot.py`; `app/routes/chatwoot.py`; `app/services/chatwoot_client.py`; `app/services/chatwoot_chat_service.py`; `app/config.py`; `app/main.py`; `docs/ai/CLAUDE.md`

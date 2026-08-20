@@ -19,6 +19,10 @@
 # Path filter: o pai versiona Gitlinks. Alterar um submodule (ponteiro SHA)
 # aparece como mudança em <pasta>/, não nos arquivos internos.
 #
+# Checkout: cada job inicia SÓ o submodule que usa (não recursive).
+#   Fine-grained GH_PAT com "Only select repositories" precisa incluir
+#   PedroHRoseno/almotos-backend; senão o clone devolve 403
+#   "Write access to repository not granted" e TODOS os jobs recursive caiam.
 # Secrets / vars — ver o bloco no job "changes" e o README da conversa de setup.
 # Tokens NUNCA vão para logs (GitHub mascara secrets.*).
 
@@ -153,16 +157,21 @@ jobs:
     if: needs.changes.outputs.front == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SUBMODULE_PATH: almotos-front
     defaults:
       run:
         working-directory: almotos-front
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -188,16 +197,21 @@ jobs:
     if: needs.changes.outputs.catalog == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SUBMODULE_PATH: almotos-catalog
     defaults:
       run:
         working-directory: almotos-catalog
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -227,16 +241,21 @@ jobs:
     if: needs.changes.outputs.ai == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SUBMODULE_PATH: almotos-ai
     defaults:
       run:
         working-directory: almotos-ai
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -258,16 +277,21 @@ jobs:
     if: needs.changes.outputs.bot == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SUBMODULE_PATH: almotos-ai-bot
     defaults:
       run:
         working-directory: almotos-ai-bot
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
@@ -294,16 +318,21 @@ jobs:
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SUBMODULE_PATH: almotos-backend
     defaults:
       run:
         working-directory: almotos-backend
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -368,17 +397,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      SUBMODULE_PATH: almotos-backend
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_BACKEND || secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
       RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_BACKEND || secrets.RAILWAY_SERVICE_BACKEND }}
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -413,17 +446,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      SUBMODULE_PATH: almotos-ai
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_AI || secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
       RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_AI || secrets.RAILWAY_SERVICE_AI }}
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -461,16 +498,20 @@ jobs:
       run:
         working-directory: almotos-front
     env:
+      SUBMODULE_PATH: almotos-front
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID || secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_FRONT || secrets.VERCEL_PROJECT_ID_FRONT }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -510,16 +551,20 @@ jobs:
       run:
         working-directory: almotos-catalog
     env:
+      SUBMODULE_PATH: almotos-catalog
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID || secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID_CATALOG || secrets.VERCEL_PROJECT_ID_CATALOG }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -556,17 +601,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      SUBMODULE_PATH: almotos-ai-bot
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_BOT || secrets.RAILWAY_TOKEN }}
       RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID || secrets.RAILWAY_PROJECT_ID }}
       RAILWAY_ENVIRONMENT: ${{ vars.RAILWAY_ENVIRONMENT || secrets.RAILWAY_ENVIRONMENT }}
       RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE_BOT || secrets.RAILWAY_SERVICE_BOT }}
     steps:
-      - name: Checkout com submodules
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Init submodule
+        working-directory: ${{ github.workspace }}
+        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
