@@ -20,7 +20,7 @@ A AL Motos opera em uma arquitetura distribuída, onde a inteligência artificia
 1. **`almotos-backend` (Backend Core):** É o **System of Record (SoR)**. Única fonte da verdade. Contém regras de negócio, invariantes de estoque e persistência em PostgreSQL. FastAPI/Python; mapeia o schema existente **sem DDL**.
 2. **`almotos-ai` (AI Orchestrator & MCP Server):** É a **Anti-Corruption Layer (ACL)**. Escrito em Node.js/TypeScript. Centraliza os prompts e expõe *Tools/Skills* seguras para os clientes via Model Context Protocol (MCP).
 3. **`almotos-catalog` (Frontend Next.js):** Vitrine voltada ao cliente. Consome o MCP para oferecer experiências de *Generative UI*.
-4. **`almotos-ai-bot` (FastAPI WhatsApp):** Atua apenas como um *Thin Client*. Repassa as intenções do usuário para o `almotos-ai`.
+4. **`almotos-ai-bot` (FastAPI Chatwoot):** Atua apenas como um *Thin Client*. Recebe webhooks do Chatwoot (caixa omnichannel) e repassa as intenções do usuário para o `almotos-ai`.
 5. **`almotos-front` (Painel admin):** Next.js autenticado; fala com o SoR via `/api/proxy`. **MUST NOT** passar pelo MCP.
 
 O Spring Boot legado (`vehicle-sales-manager-v2-kotlin`) **não** faz mais parte deste monorepo. O código permanece em repositório GitHub próprio, só para rollback no Railway. **MUST NOT** voltar a ser writer enquanto o FastAPI estiver no mesmo Postgres.
@@ -29,7 +29,7 @@ O Spring Boot legado (`vehicle-sales-manager-v2-kotlin`) **não** faz mais parte
 
 Qualquer interação orientada a IA **MUST** seguir o fluxo através do servidor MCP:
 
-`Cliente (Web/WA) → Interface (Next.js/FastAPI) → Orquestrador AI (almotos-ai) → Tools MCP → SoR API (almotos-backend) → PostgreSQL`
+`Cliente (Web/WA) → Chatwoot → Interface (Next.js/FastAPI) → Orquestrador AI (almotos-ai) → Tools MCP → SoR API (almotos-backend) → PostgreSQL`
 
 ---
 

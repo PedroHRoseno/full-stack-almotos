@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — Bot: webhook Chatwoot (caixa omnichannel)
+
+- **Arquivos modificados:** `almotos-ai-bot/app/models/chatwoot.py`; `app/routes/chatwoot.py`; `app/services/chatwoot_client.py`; `app/services/chatwoot_chat_service.py`; `app/config.py`; `app/main.py`; `docs/ai/CLAUDE.md`
+- **Por que:** o Chatwoot passou a ser a inbox; o bot deixa de falar direto com a Cloud API da Meta no caminho novo. Webhook `POST /webhook/chatwoot` ignora `outgoing` e eventos ≠ `message_created` (anti-loop). Resposta sai via API Chatwoot; a IA continua só no `almotos-ai` (ADR-003).
+
 ## 2026-08-20 — Tutoriais e notas temporárias em `docs/scratch`
 
 - **Arquivos modificados:** `.gitignore`; `.cursor/rules/docs-scratch.mdc`; `README.md`; `docs/ai/` (só `CLAUDE.md` e `CHANGELOG.md` permanecem)
