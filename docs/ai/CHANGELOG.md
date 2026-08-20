@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — Admin: identidade do catálogo + edição de veículo (placa)
+
+- **Arquivos modificados:** `almotos-front/src/app/**`; `almotos-front/src/components/ui/**`; `almotos-front/src/components/forms/form-veiculo.tsx`; `almotos-front/src/components/layout/**`; `almotos-front/tailwind.config.ts`; `almotos-front/src/lib/validations/schemas.ts`
+- **Por que:** o SoR já aceita `PUT /vehicles/{placaAtual}` com placa nova no body (UUID interno). O painel passou a expor essa edição e adotou os tokens do catálogo (canvas/brand, DM Sans + Syne só no H1), sem copiar o layout de vitrine — input `rounded-xl`, botão pílula, laranja só em CTA e nav ativo.
+
 ## 2026-08-20 — CI: credencial no `git submodule update`
 
 - **Arquivos modificados:** `.github/workflows/ci-cd.yml`
