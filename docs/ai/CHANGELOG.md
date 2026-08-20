@@ -2,6 +2,31 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — Kotlin sai do monorepo; CI/CD e submodule do SoR FastAPI
+
+- **Arquivos modificados:** `.github/workflows/ci-cd.yml`; `.gitmodules`; `README.md`; `docs/ai/TUTORIAL_SUBMODULOS.md`; `docs/ai/CLAUDE.md`; `almotos-backend/docker-compose.yml`
+- **Por que:** o SoR em produção já é o FastAPI. O pai deixa de clonar/buildar o Kotlin; `almotos-backend` vira submodule como os outros produtos. Compose de Postgres local muda para a pasta do FastAPI. Tutorial em `docs/ai/TUTORIAL_SUBMODULOS.md`.
+
+## 2026-08-20 — Fase 10: cutover SoR Kotlin → FastAPI (produção)
+
+- **Arquivos modificados:** `docs/ai/CLAUDE.md` (ADR-001); `docs/ai/PLANO_MIGRACAO_KOTLIN_FASTAPI.md`; `README.md`; `docs/ai/GUIA_NAVEGACAO_CODIGO.md`; `docs/ai/SYSTEM_DESIGN_FDE.md`
+- **Por que:** o FastAPI (`almotos-backend`) assumiu o Postgres e o domínio `api.almotoscaruaru.com.br`. O Kotlin fica em standby para rollback. `almotos-ai` continua sem JDBC; o contrato HTTP (JWT, catálogo público, painel) não muda. Schema intocado (zero DDL).
+
+## 2026-08-20 — Fases 3–9: API FastAPI completa (sem cutover)
+
+- **Arquivos modificados:** `almotos-backend/**`; `tests/test_domain.py`; `tests/test_http_contract.py`; `.github/workflows/ci-cd.yml`; `docs/ai/PLANO_MIGRACAO_KOTLIN_FASTAPI.md`
+- **Por que:** portar o contrato HTTP do SoR Kotlin (veículos, catálogo público, S3, parceiros, compra/venda/troca, custos, caixa, relatórios) para FastAPI sem DDL. Produção continua no Kotlin (ADR-001) até a Fase 10.
+
+## 2026-08-20 — Fase 2: ORM (schema existente) + login JWT
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/models/**`; `security/**`; `routers/auth.py`; `services/auth.py`; `schemas/auth.py`; `tests/test_auth.py`; `tests/test_jwt.py`; `docs/ai/PLANO_MIGRACAO_KOTLIN_FASTAPI.md`
+- **Por que:** mapear as tabelas do Postgres sem DDL; autenticar com o mesmo JWT do Kotlin (HS256 + SHA-256 do secret) e BCrypt `$2a$`, para dual-run sem deslogar. O Kotlin permanece o writer até o cutover (ADR-001).
+
+## 2026-08-20 — Fase 1: esqueleto FastAPI do SoR (`almotos-backend`)
+
+- **Arquivos modificados:** `almotos-backend/**`; `docs/ai/PLANO_MIGRACAO_KOTLIN_FASTAPI.md`; `.gitignore`
+- **Por que:** iniciar a migração Kotlin → FastAPI com app, Settings, engine async (`SELECT 1`), CORS, `/health` e exception handlers, **sem** `create_all`/Alembic. O Kotlin permanece o único writer do Postgres (ADR-001) até o cutover.
+
 ## 2026-08-17 — Chat web: texto curto + Generative UI (sem dump Markdown)
 
 - **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `almotos-catalog/src/components/assistant/assistant-widget.tsx`

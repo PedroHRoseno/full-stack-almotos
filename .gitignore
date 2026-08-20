@@ -11,6 +11,7 @@
 # Env (monorepo root safety)
 .env
 .env.*
+!.env.example
 
 # Ops local — não versionar (estratégia de deploy / secrets de produção)
 DEPLOY_PROD.local.md
