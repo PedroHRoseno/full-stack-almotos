@@ -2,6 +2,21 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — FIPE, preço sugerido, tags e máscara BRL
+
+- **Arquivos modificados:** `almotos-backend` (Alembic `002_vehicle_fipe_price_tags`, models/schemas/services/routers de veículos, FIPE e tags); `almotos-front` (form de veículo, autocomplete FIPE, TagInput, CurrencyInput); `almotos-ai` (contrato público, `searchInventory`, system prompt); `almotos-catalog` (preço sugerido e tags públicas na vitrine)
+- **Por que:** o SoR passa a persistir `codigo_fipe` (nullable), `suggested_price` e tags reutilizáveis com visibilidade INTERNAL/PUBLIC (`tags` + `vehicle_tags`). A Brasil API é proxy autenticado com timeout — se cair, o cadastro segue com modelo livre e FIPE nulo. O catálogo público e a IA só veem preço sugerido e tags públicas; tags internas ficam no admin. A IA cita o preço cadastrado, sem calcular desconto.
+
+## 2026-08-20 — Catálogo e admin: acento vermelho + tema claro/escuro
+
+- **Arquivos modificados:** `almotos-catalog/src/app/{globals.css,layout.tsx}`; `almotos-catalog/src/{lib/theme.ts,components/theme-*.tsx,components/site-header.tsx}`; `almotos-front/src/app/{globals.css,layout.tsx,login/page.tsx}`; `almotos-front/src/{lib/theme.ts,components/theme-*.tsx,components/themed-toaster.tsx,components/layout/app-sidebar.tsx}`
+- **Por que:** o acento de marca passou de laranja (`#ff6a2b`) para o vermelho da logo (`#eb0b0b`). Os dois fronts passam a seguir `prefers-color-scheme` (default `system`) e expõem um botão Sistema/Claro/Escuro, persistido em `localStorage` (`almotos-theme`), sem `next-themes`.
+
+## 2026-08-20 — Admin: proxy não dispara `Invalid URL` com base malformada
+
+- **Arquivos modificados:** `almotos-front/src/app/api/proxy/[...path]/route.ts`
+- **Por que:** `new URL(path, base)` estoura TypeError se `NEXT_PUBLIC_API_URL` vier relativa, só `https://`, ou sem hostname — o SoR nunca é chamado. O proxy passa a validar a origem (prioridade `BACKEND_URL`) e montar o path em cima de `parsed.origin`.
+
 ## 2026-08-20 — Admin: identidade do catálogo + edição de veículo (placa)
 
 - **Arquivos modificados:** `almotos-front/src/app/**`; `almotos-front/src/components/ui/**`; `almotos-front/src/components/forms/form-veiculo.tsx`; `almotos-front/src/components/layout/**`; `almotos-front/tailwind.config.ts`; `almotos-front/src/lib/validations/schemas.ts`
