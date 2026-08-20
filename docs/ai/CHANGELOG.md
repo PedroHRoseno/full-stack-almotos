@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — PK UUID em `vehicles`; placa vira UNIQUE
+
+- **Arquivos modificados:** `almotos-backend/alembic/**`; `almotos-backend/src/almotos_backend/models/{vehicle,commerce,finance,base}.py`; `services/{vehicles,purchases,sales,exchanges,costs,vehicle_history,movements}.py`; `routers/vehicles.py`; `tests/**`; `Dockerfile`; `railway.json`; `almotos-front/src/lib/api.ts`; `docs/ai/CLAUDE.md` (ADR-001)
+- **Por que:** a placa como PK espalhava FKs varchar e impedia correção de placa. `vehicles.id` UUID passa a ser a PK; filhas apontam para esse id. Lookup HTTP continua por placa (`GET/PUT /vehicles/{placa}`). Alembic aplica o DDL no release; o app **MUST NOT** rodar upgrade/`create_all` no startup.
+
 ## 2026-08-20 — CI: checkout de um submodule por job
 
 - **Arquivos modificados:** `.github/workflows/ci-cd.yml`

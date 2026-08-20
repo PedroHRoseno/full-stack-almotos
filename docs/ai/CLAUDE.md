@@ -17,7 +17,7 @@ A AL Motos opera em uma arquitetura distribuída, onde a inteligência artificia
 
 ### Papéis dos Submódulos
 
-1. **`almotos-backend` (Backend Core):** É o **System of Record (SoR)**. Única fonte da verdade. Contém regras de negócio, invariantes de estoque e persistência em PostgreSQL. FastAPI/Python; mapeia o schema existente **sem DDL**.
+1. **`almotos-backend` (Backend Core):** É o **System of Record (SoR)**. Única fonte da verdade. Contém regras de negócio, invariantes de estoque e persistência em PostgreSQL. FastAPI/Python; schema evolui **só via Alembic** (nunca `create_all` / `upgrade` no startup).
 2. **`almotos-ai` (AI Orchestrator & MCP Server):** É a **Anti-Corruption Layer (ACL)**. Escrito em Node.js/TypeScript. Centraliza os prompts e expõe *Tools/Skills* seguras para os clientes via Model Context Protocol (MCP).
 3. **`almotos-catalog` (Frontend Next.js):** Vitrine voltada ao cliente. Consome o MCP para oferecer experiências de *Generative UI*.
 4. **`almotos-ai-bot` (FastAPI Chatwoot):** Atua apenas como um *Thin Client*. Recebe webhooks do Chatwoot (caixa omnichannel) e repassa as intenções do usuário para o `almotos-ai`.
@@ -38,8 +38,8 @@ Qualquer interação orientada a IA **MUST** seguir o fluxo através do servidor
 Para manter a integridade e segurança do sistema, as seguintes decisões (ADRs) são vigentes e **MUST NOT** ser violadas pelo agente de IA:
 
 ### ADR-001: Isolamento de Persistência (SoR)
-- **Decisão:** O `almotos-backend` (FastAPI) é o único writer do PostgreSQL. Cutover 2026-08-20; domínio `api.almotoscaruaru.com.br` aponta para esse serviço.
-- **Guardrail:** O serviço `almotos-ai` (Node.js) e as interfaces (Next.js / bot WhatsApp) **MUST NOT** estabelecer um segundo writer nem conexões diretas (ex: Prisma, psycopg2) com o PostgreSQL. Eles **MUST** consumir os dados operacionais através da API REST do SoR. O agente **MUST NOT** criar bancos de dados paralelos (ex: Redis) para espelhar o estoque. O FastAPI **MUST NOT** rodar Alembic/`create_all` no schema de produção.
+- **Decisão:** O `almotos-backend` (FastAPI) é o único writer do PostgreSQL. Cutover 2026-08-20; domínio `api.almotoscaruaru.com.br` aponta para esse serviço. O schema é dono do FastAPI via Alembic (revisões SQL explícitas).
+- **Guardrail:** O serviço `almotos-ai` (Node.js) e as interfaces (Next.js / bot WhatsApp) **MUST NOT** estabelecer um segundo writer nem conexões diretas (ex: Prisma, psycopg2) com o PostgreSQL. Eles **MUST** consumir os dados operacionais através da API REST do SoR. O agente **MUST NOT** criar bancos de dados paralelos (ex: Redis) para espelhar o estoque. O FastAPI **MUST NOT** rodar Alembic/`create_all` no startup da aplicação. DDL **MUST** ser aplicado com `alembic upgrade head` como passo de release (antes do novo processo receber tráfego), nunca por `Base.metadata.create_all()`.
 
 ### ADR-002: Capability Scoping (Segurança de Tools Públicas)
 - **Decisão:** Clientes não autenticados (Catálogo e WhatsApp) só podem ler dados públicos e normalizados.
