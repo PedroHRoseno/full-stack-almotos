@@ -32,7 +32,7 @@ almotos-catalog  ou  almotos-ai-bot      almotos-front
 
 Fluxo de IA: `Cliente → catálogo ou bot → almotos-ai → tools → GET /api/public/vehicles → Postgres`.
 
-Guardrails: [`CLAUDE.md`](./CLAUDE.md).
+Guardrails: [`docs/ai/CLAUDE.md`](./docs/ai/CLAUDE.md).
 
 ## Submódulos e serviços
 
@@ -45,8 +45,6 @@ Guardrails: [`CLAUDE.md`](./CLAUDE.md).
 | [`almotos-ai-bot`](./almotos-ai-bot) | Adapter WhatsApp (Meta Cloud API) | FastAPI, Python 3.12 | `8000` | Railway |
 
 Remotes em `https://github.com/PedroHRoseno/`: `almotos-backend`, `almotos-front`, `almotos-catalog`, `almotos-ai`, `almotos-ai-bot`.
-
-Tutorial do monorepo: [`docs/ai/TUTORIAL_SUBMODULOS.md`](./docs/ai/TUTORIAL_SUBMODULOS.md).
 
 ## Clonar
 
@@ -178,9 +176,8 @@ Partner, Vehicle, Purchase, Sale, Exchange, VehicleCost, StoreTransaction, User.
 
 ## Documentação
 
-- ADRs / agentes: [`CLAUDE.md`](./CLAUDE.md)
+- ADRs / agentes: [`docs/ai/CLAUDE.md`](./docs/ai/CLAUDE.md)
 - Changelog: [`docs/ai/CHANGELOG.md`](./docs/ai/CHANGELOG.md)
-- Tutorial submódulos / CI: [`docs/ai/TUTORIAL_SUBMODULOS.md`](./docs/ai/TUTORIAL_SUBMODULOS.md)
 - [`almotos-backend/README.md`](./almotos-backend/README.md)
 - [`almotos-front/README.md`](./almotos-front/README.md)
 - [`almotos-ai/README.md`](./almotos-ai/README.md)

@@ -15,3 +15,6 @@
 
 # Ops local — não versionar (estratégia de deploy / secrets de produção)
 DEPLOY_PROD.local.md
+
+# Tutoriais, planos e notas temporárias (ver .cursor/rules/docs-scratch.mdc)
+docs/scratch/

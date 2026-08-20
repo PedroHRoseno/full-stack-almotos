@@ -65,6 +65,6 @@ Para manter a integridade e segurança do sistema, as seguintes decisões (ADRs)
 
 Ao ser solicitado para criar ou refatorar código neste workspace, o agente de IA **MUST** seguir este protocolo:
 
-1. **Reconhecimento de Fronteiras:** Antes de propor código, identifique em qual pasta a alteração deve ocorrer (`almotos-backend`, `almotos-ai`, `almotos-front`, `almotos-catalog`, `almotos-ai-bot`). Se a feature exigir alteração em múltiplos (ex: criar uma tool no MCP e exibi-la no Next.js), o agente **MUST** descrever a mudança na fronteira (contrato de API) antes de implementar.
+1. **Reconhecimento de Fronteiras:** Antes de propor código, identifique em qual pasta a alteração deve ocorrer (`almotos-backend`, `almotos-ai`, `almotos-front`, `almotos-catalog`, `almotos-ai-bot`). Se a feature exigir alteração em múltiplos (ex: criar uma tool no MCP e exibi-la no Next.js), o agente **MUST** descrever a mudança na fronteira (contrato de API) antes de implementar. Tutoriais e notas temporárias **MUST** ir em `docs/scratch/` (gitignored), **MUST NOT** em `docs/ai/` além deste arquivo e do `CHANGELOG.md`.
 2. **Uso de Ferramentas (Vercel AI SDK):** Quando atuando no `almotos-catalog` (Next.js), o agente **SHOULD** priorizar o uso do Vercel AI SDK para consumir tools e renderizar *Generative UI*, em vez de respostas em texto puro.
 3. **Bloqueio de Alucinação Financeira:** O agente **MUST NOT** gerar código ou prompts que permitam à IA inferir, deduzir ou calcular preços de venda, descontos ou parcelamentos. Essas negociações requerem intervenção humana (Handoff).

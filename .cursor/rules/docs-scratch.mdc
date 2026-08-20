@@ -1,0 +1,25 @@
+---
+description: Tutoriais e notas temporárias vão em docs/scratch (gitignored); docs/ai só CHANGELOG e CLAUDE.
+alwaysApply: true
+---
+
+# Onde colocar documentação
+
+`docs/ai/` no git **só** tem:
+
+- `docs/ai/CLAUDE.md` — ADRs e guardrails (normativo)
+- `docs/ai/CHANGELOG.md` — memória do agente (ADR-005)
+
+Tudo o mais de tutorial, plano, dump de design, how-to, rascunho ou nota de sessão **MUST** ir em `docs/scratch/` (pasta no `.gitignore`). Criar a pasta se não existir.
+
+```
+# ❌ BAD — tutorial versionado em docs/ai
+docs/ai/TUTORIAL_SUBMODULOS.md
+
+# ✅ GOOD
+docs/scratch/TUTORIAL_SUBMODULOS.md
+```
+
+**MUST NOT** `git add docs/scratch/` nem mover tutorial para `docs/ai/`. README e ADRs versionados **MUST NOT** linkar arquivos de `docs/scratch/` (clones não terão a pasta).
+
+Exceções que continuam no git: `README.md` da raiz/submódulos, `CLAUDE.md`, `CHANGELOG.md`. Após mudança de contrato, o changelog **MUST** continuar em `docs/ai/CHANGELOG.md`.

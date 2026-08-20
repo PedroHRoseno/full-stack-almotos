@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — Tutoriais e notas temporárias em `docs/scratch`
+
+- **Arquivos modificados:** `.gitignore`; `.cursor/rules/docs-scratch.mdc`; `README.md`; `docs/ai/` (só `CLAUDE.md` e `CHANGELOG.md` permanecem)
+- **Por que:** tutoriais, planos e dumps de design não entram no git. Pasta local `docs/scratch/` (ignorada). Agentes seguem a regra Cursor `docs-scratch`.
+
 ## 2026-08-20 — Tutorial de submódulos: só no pai + recuperação
 
 - **Arquivos modificados:** `docs/ai/TUTORIAL_SUBMODULOS.md`
