@@ -20,9 +20,11 @@
 # aparece como mudança em <pasta>/, não nos arquivos internos.
 #
 # Checkout: cada job inicia SÓ o submodule que usa (não recursive).
+#   git submodule update NÃO herda o extraheader local do actions/checkout
+#   (erro: "could not read Username for 'https://github.com'"). O step
+#   "Init submodule" injeta o token via insteadOf e remove em seguida.
 #   Fine-grained GH_PAT com "Only select repositories" precisa incluir
-#   PedroHRoseno/almotos-backend; senão o clone devolve 403
-#   "Write access to repository not granted" e TODOS os jobs recursive caiam.
+#   PedroHRoseno/almotos-backend (403 "Write access to repository not granted").
 # Secrets / vars — ver o bloco no job "changes" e o README da conversa de setup.
 # Tokens NUNCA vão para logs (GitHub mascara secrets.*).
 
@@ -171,7 +173,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -211,7 +219,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -255,7 +269,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -291,7 +311,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
@@ -332,7 +358,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -411,7 +443,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -460,7 +498,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -511,7 +555,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -564,7 +614,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -615,7 +671,13 @@ jobs:
 
       - name: Init submodule
         working-directory: ${{ github.workspace }}
-        run: git submodule update --init --depth=1 "$SUBMODULE_PATH"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init --depth=1 "$SUBMODULE_PATH"
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf"
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4

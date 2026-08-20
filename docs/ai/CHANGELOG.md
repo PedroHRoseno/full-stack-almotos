@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — CI: credencial no `git submodule update`
+
+- **Arquivos modificados:** `.github/workflows/ci-cd.yml`
+- **Por que:** o clone do submodule não usa o extraheader local do `actions/checkout`. Sem token, o Git pede usuário no runner (`could not read Username for 'https://github.com'`). O step passa a autenticar com `GH_PAT` via `url.*.insteadOf` e limpa o config depois.
+
 ## 2026-08-20 — PK UUID em `vehicles`; placa vira UNIQUE
 
 - **Arquivos modificados:** `almotos-backend/alembic/**`; `almotos-backend/src/almotos_backend/models/{vehicle,commerce,finance,base}.py`; `services/{vehicles,purchases,sales,exchanges,costs,vehicle_history,movements}.py`; `routers/vehicles.py`; `tests/**`; `Dockerfile`; `railway.json`; `almotos-front/src/lib/api.ts`; `docs/ai/CLAUDE.md` (ADR-001)
