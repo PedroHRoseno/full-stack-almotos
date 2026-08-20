@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-20 — Tutorial de submódulos: só no pai + recuperação
+
+- **Arquivos modificados:** `docs/ai/TUTORIAL_SUBMODULOS.md`
+- **Por que:** `git submodule add` dentro de `almotos-front` aninha o SoR no painel. O tutorial agora manda conferir o cwd, atualizar ponteiro após amend, e limpar config + cache em `.git/modules/...` se o add rodou no filho.
+
 ## 2026-08-20 — Kotlin sai do monorepo; CI/CD e submodule do SoR FastAPI
 
 - **Arquivos modificados:** `.github/workflows/ci-cd.yml`; `.gitmodules`; `README.md`; `docs/ai/TUTORIAL_SUBMODULOS.md`; `docs/ai/CLAUDE.md`; `almotos-backend/docker-compose.yml`
