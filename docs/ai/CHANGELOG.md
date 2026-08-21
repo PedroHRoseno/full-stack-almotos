@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-21 — Catálogo: fotos novas do S3 não quebram no next/image
+
+- **Arquivos modificados:** `almotos-catalog/src/components/ui/catalog-image.tsx`; `almotos-catalog/src/components/{vehicle-card,vehicle-gallery,assistant/tool-renderers}.tsx`; `almotos-catalog/next.config.mjs`
+- **Por que:** o FastAPI grava URL regional (`bucket.s3.{region}.amazonaws.com`). O admin usa `<img>` direto; o catálogo passava pelo otimizador da Vercel, que rejeita esse hostname (fotos antigas no formato `bucket.s3.amazonaws.com` continuavam ok). Remote http(s) agora carrega sem otimizador, como o admin.
+
 ## 2026-08-20 — FIPE, preço sugerido, tags e máscara BRL
 
 - **Arquivos modificados:** `almotos-backend` (Alembic `002_vehicle_fipe_price_tags`, models/schemas/services/routers de veículos, FIPE e tags); `almotos-front` (form de veículo, autocomplete FIPE, TagInput, CurrencyInput); `almotos-ai` (contrato público, `searchInventory`, system prompt); `almotos-catalog` (preço sugerido e tags públicas na vitrine)
