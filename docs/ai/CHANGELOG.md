@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-21 — Cancelar venda realmente persiste (commit após autoflush)
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/db.py`; `almotos-backend/tests/test_session_commit.py`; `almotos-front/src/app/vendas/page.tsx`
+- **Por que:** `get_session` só commitava se `session.dirty/new` tivesse itens. `cancel_sale` termina em `_to_out` (autoflush), as coleções ficam vazias, o FastAPI devolve 204 e o Postgres faz rollback — toast de sucesso, venda continua ACTIVE e a moto não volta ao estoque. O commit passou a ser incondicional no sucesso do request.
+
 ## 2026-08-21 — Catálogo: fotos novas do S3 não quebram no next/image
 
 - **Arquivos modificados:** `almotos-catalog/src/components/ui/catalog-image.tsx`; `almotos-catalog/src/components/{vehicle-card,vehicle-gallery,assistant/tool-renderers}.tsx`; `almotos-catalog/next.config.mjs`
