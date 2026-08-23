@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-23 — Bot Chatwoot: pausa humana de 4s antes da resposta
+
+- **Arquivos modificados:** `almotos-ai-bot/app/routes/chatwoot.py`
+- **Por que:** respostas instantâneas via Evolution/WhatsApp estavam marcando a sessão como automatizada (`401 device_removed`). O ACK do webhook continua imediato (`BackgroundTasks`); `await asyncio.sleep(4)` roda só no worker, antes de chamar o `almotos-ai` e devolver a mensagem ao Chatwoot.
+
 ## 2026-08-21 — Cancelar venda realmente persiste (commit após autoflush)
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/db.py`; `almotos-backend/tests/test_session_commit.py`; `almotos-front/src/app/vendas/page.tsx`
