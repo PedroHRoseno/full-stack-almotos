@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-08-25 — FIPE completa, usuários internos e UX de motos/catálogo
+
+- **Arquivos modificados:** `almotos-backend` (`/fipe/anos`, `/fipe/consulta`, CRUD `/users`, `PATCH /api/auth/me/password`, middleware JWT só libera `POST /api/auth/login`); `almotos-front` (ficha da moto sem modal gigante, preço/km/tags/fotos, `/consulta-fipe`, `/configuracoes`); `almotos-catalog` (CTA “Tenho interesse”, tipografia DM Sans no nome/preço); `almotos-ai` (copy MCP deixa de dizer “sem preço”).
+- **Por que:** o valor FIPE da Brasil API já era buscado e descartado; o admin precisava da referência (e de uma consulta avulsa) sem gravar tabela no veículo. Gestão de usuários internos não existia e `/api/auth/*` inteiro era público. A vitrine já mostrava preço, então o botão “Consultar preço” e a Syne no valor atrapalhavam a leitura; a edição em modal duplicava fotos/publicação.
+
 ## 2026-08-23 — Bot Chatwoot: pausa humana de 4s antes da resposta
 
 - **Arquivos modificados:** `almotos-ai-bot/app/routes/chatwoot.py`
