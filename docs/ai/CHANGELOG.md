@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-01 — WhatsApp: anti-loop (eco/agente/duplo webhook) + pacing obrigatório
+
+- **Arquivos modificados:** `almotos-ai-bot/app/services/{reply_guard,evolution_client,chatwoot_client,chatwoot_chat_service,whatsapp_service}.py`; `almotos-ai-bot/app/routes/{chatwoot,evolution}.py`; `almotos-ai-bot/app/models/{chatwoot,evolution}.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
+- **Por que:** o mesmo "oi" gerava 3 respostas: webhook Chatwoot + webhook Evolution + eco do `sendText` da Evolution (o Chatwoot via como incoming). Agentes `sender.type=user` também disparavam a IA. Agora: 1) inbound Evolution é ignorado se o Chatwoot está configurado; 2) ignora fromMe/outgoing/agente; 3) dedup por contato+texto; 4) texto do Chatwoot volta a sair só como outgoing da caixa; 5) todo envio ao WhatsApp (incluindo fallback de erro) passa por `pace()` — mínimo 5s até a 1ª resposta e 6s entre envios, com jitter.
+
 ## 2026-09-01 — WhatsApp/Chatwoot: handoff na mesma conversa, sem preview, fotos únicas
 
 - **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime,whatsapp-format}.ts`; `almotos-ai/src/tools/{handoff-to-seller,get-vehicle-photos,ai-tools}.ts`; `almotos-ai/src/mcp/create-server.ts`; `almotos-ai-bot/app/services/{evolution_client,chatwoot_client,chatwoot_chat_service,evolution_chat_service,chat_service,whatsapp_format,almotos_ai_client}.py`; `almotos-ai-bot/app/models/chatwoot.py`; `almotos-catalog/src/components/assistant/tool-renderers.tsx`
