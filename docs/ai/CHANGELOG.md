@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-01 — WhatsApp: presença 'digitando', leitura e pacing proporcional
+
+- **Arquivos modificados:** `almotos-ai-bot/app/services/{evolution_client,reply_guard,chatwoot_client,chatwoot_chat_service,evolution_chat_service}.py`; `almotos-ai-bot/app/models/chatwoot.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
+- **Por que:** a Meta ainda via o padrão de bot (resposta sem ler, sem 'digitando…', intervalo fixo). O bot agora marca a mensagem como lida, dispara `sendPresence` (composing) proporcional ao tamanho do texto, espera 1–3s como se estivesse lendo e só então envia. Think/min-reply sobem para 6s/8s com jitter maior. Presence/read falhos não bloqueiam o envio.
+
 ## 2026-09-01 — WhatsApp: anti-loop (eco/agente/duplo webhook) + pacing obrigatório
 
 - **Arquivos modificados:** `almotos-ai-bot/app/services/{reply_guard,evolution_client,chatwoot_client,chatwoot_chat_service,whatsapp_service}.py`; `almotos-ai-bot/app/routes/{chatwoot,evolution}.py`; `almotos-ai-bot/app/models/{chatwoot,evolution}.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
