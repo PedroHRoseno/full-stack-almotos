@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-01 — WhatsApp/Chatwoot: handoff na mesma conversa, sem preview, fotos únicas
+
+- **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime,whatsapp-format}.ts`; `almotos-ai/src/tools/{handoff-to-seller,get-vehicle-photos,ai-tools}.ts`; `almotos-ai/src/mcp/create-server.ts`; `almotos-ai-bot/app/services/{evolution_client,chatwoot_client,chatwoot_chat_service,evolution_chat_service,chat_service,whatsapp_format,almotos_ai_client}.py`; `almotos-ai-bot/app/models/chatwoot.py`; `almotos-catalog/src/components/assistant/tool-renderers.tsx`
+- **Por que:** o bot mandava `wa.me` para outro número em vez de passar o Chatwoot na mesma linha; Markdown `[texto](url)` e preview de link poluíam o WhatsApp; `getVehiclePhotos` podia devolver a mesma foto várias vezes (cadastro duplicado ou merge). Handoff agora abre a conversa no Chatwoot (`status: open` + nota privada) e o texto do cliente sai pela Evolution com `linkPreview: false`. Fotos são URLs distintas, sem preencher até 3.
+
 ## 2026-09-01 — Evolution webhook: apikey do header/body + auth inbound não-estrita
 
 - **Arquivos modificados:** `almotos-ai-bot/app/{config.py,routes/evolution.py,models/evolution.py}`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`; `almotos-ai-bot/railway-variables.json`
