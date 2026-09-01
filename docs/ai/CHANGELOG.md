@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-01 — Evolution webhook: apikey do header/body + auth inbound não-estrita
+
+- **Arquivos modificados:** `almotos-ai-bot/app/{config.py,routes/evolution.py,models/evolution.py}`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`; `almotos-ai-bot/railway-variables.json`
+- **Por que:** o webhook rejeitava com 401 porque comparava só `body.apikey or header` contra `EVOLUTION_API_KEY`. A Evolution coloca o **token da instância** no body e o header `apikey` (ou `Authorization`) costuma ser a chave global — o body ganhava e o header correto era ignorado. Agora aceita `apikey` / `x-api-key` / `Authorization` / body (qualquer um). `EVOLUTION_WEBHOOK_AUTH_REQUIRED` padrão `false` processa mesmo em mismatch (e2e); `true` volta o 401.
+
 ## 2026-09-01 — WhatsApp: respostas humanizadas, máx. 3 motos + CTA híbrida
 
 - **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime}.ts`; `almotos-ai/src/tools/ai-tools.ts`
