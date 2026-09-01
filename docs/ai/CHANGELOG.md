@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-01 — WhatsApp: respostas humanizadas, máx. 3 motos + CTA híbrida
+
+- **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime}.ts`; `almotos-ai/src/tools/ai-tools.ts`
+- **Por que:** o bot listava estoque como dump chave-valor (`Tags: X, Y`) e despejava até 8 motos numa mensagem. O system prompt do orquestrador (ADR-003; o FastAPI é thin client) passa a limitar 3 itens por turno, transformar tags em frase de venda, colocar o `catalogUrl` em texto puro no fim de cada item e, se houver mais matches, encerrar com CTA híbrida (continuar no chat ou abrir o catálogo). `maxTokens` do canal não-stream sobe de 600 para 800 para a CTA não ser cortada.
+
+## 2026-09-01 — WhatsApp: texto puro + mídia via Evolution `/message/sendMedia`
+
+- **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime,whatsapp-format}.ts`; `almotos-ai-bot/app/{config,main}.py`; `app/models/{chatwoot,evolution}.py`; `app/routes/{evolution,__init__,chatwoot}.py`; `app/services/{whatsapp_format,evolution_client,evolution_chat_service,chatwoot_chat_service,chat_service,whatsapp_service}.py`; `almotos-ai-bot/.env.example`; `RAILWAY.md`
+- **Por que:** o WhatsApp não renderiza `[texto](url)` nem `![foto](url)`. O orquestrador sanitiza o canal `whatsapp` (URL visível em texto puro; fotos extraídas). O bot envia imagens pelo endpoint de mídia da Evolution em vez de colar o S3 no corpo. O webhook `/webhook/evolution` diferencia texto de mídia e lê `remoteJid` (e `remoteJidAlt`) de forma estável.
+
 ## 2026-08-25 — FIPE completa, usuários internos e UX de motos/catálogo
 
 - **Arquivos modificados:** `almotos-backend` (`/fipe/anos`, `/fipe/consulta`, CRUD `/users`, `PATCH /api/auth/me/password`, middleware JWT só libera `POST /api/auth/login`); `almotos-front` (ficha da moto sem modal gigante, preço/km/tags/fotos, `/consulta-fipe`, `/configuracoes`); `almotos-catalog` (CTA “Tenho interesse”, tipografia DM Sans no nome/preço); `almotos-ai` (copy MCP deixa de dizer “sem preço”).
