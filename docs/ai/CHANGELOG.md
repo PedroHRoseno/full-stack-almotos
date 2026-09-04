@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-04 — Catálogo: rodapé legal e /privacidade (LGPD)
+
+- **Arquivos modificados:** `almotos-catalog/src/components/site-footer.tsx`; `almotos-catalog/src/app/privacidade/page.tsx`; `almotos-catalog/src/components/catalog-page.tsx`; `almotos-catalog/src/app/motos/[slug]/page.tsx`
+- **Por que:** a vitrine pública precisa identificar o controlador (razão social, CNPJ, endereço) e deixar explícito que nome e telefone servem só a WhatsApp e simulação de financiamento.
+
+## 2026-09-03 — Remove puxadinho de fluxo pessoal do admin
+
+- **Arquivos modificados:** `almotos-front/src/app/fluxo-pessoal/page.tsx` (removido); `almotos-front/src/app/api/personal-finance/[...path]/route.ts` (removido); `almotos-front/src/lib/personal-finance.ts` (removido); `almotos-front/src/components/layout/app-sidebar.tsx`; `almotos-front/.env.example`; `.gitignore`
+- **Por que:** caixa pessoal não entra no monorepo nem no painel da loja. O app vive num repositório Git próprio (`personal-finance/`, gitignored aqui) e sobe sozinho no Railway.
+
 ## 2026-09-01 — WhatsApp: presença 'digitando', leitura e pacing proporcional
 
 - **Arquivos modificados:** `almotos-ai-bot/app/services/{evolution_client,reply_guard,chatwoot_client,chatwoot_chat_service,evolution_chat_service}.py`; `almotos-ai-bot/app/models/chatwoot.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
