@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-07 — Landing Instagram + catálogo em /estoque e multi-domínio
+
+- **Arquivos modificados:** `almotos-catalog/src/app/{page.tsx,estoque/page.tsx,sitemap.ts,motos/[slug]/page.tsx,motos/[slug]/not-found.tsx,privacidade/page.tsx}`; `almotos-catalog/src/middleware.ts`; `almotos-catalog/src/lib/{routes.ts,api.ts,vehicle.ts}`; `almotos-catalog/src/components/{catalog-page.tsx,landing/*}`; `almotos-backend/src/almotos_backend/services/vehicles.py`
+- **Por que:** o Instagram precisa de uma porta de entrada rápida (estilo Linktree) no apex `almotoscaruaru.com.br`, sem misturar com a vitrine. O catálogo público moveu para `/estoque`; o middleware faz rewrite de `catalogo.almotoscaruaru.com.br/` para essa rota no mesmo projeto Vercel. A busca `?q=` e as 3 motos recentes (SoR ordenado por `created_at` desc) reutilizam o card e o footer legais já existentes. Simulação de financiamento continua via WhatsApp (sem cálculo de parcela — ADR financeiro).
+
 ## 2026-09-04 — Catálogo: rodapé legal e /privacidade (LGPD)
 
 - **Arquivos modificados:** `almotos-catalog/src/components/site-footer.tsx`; `almotos-catalog/src/app/privacidade/page.tsx`; `almotos-catalog/src/components/catalog-page.tsx`; `almotos-catalog/src/app/motos/[slug]/page.tsx`
