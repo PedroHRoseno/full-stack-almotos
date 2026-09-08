@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-08 — WhatsApp/Chatwoot: anexo de foto, preço antes do handoff, busca fuzzy
+
+- **Arquivos modificados:** `almotos-ai-bot/app/services/{chatwoot_client,chatwoot_chat_service}.py`; `almotos-ai/src/{chat/system-prompt,tools/ai-tools,tools/search-inventory,tools/get-vehicle-photos,inventory/kotlin-client,contracts/public-vehicle,mcp/create-server}.ts`; `almotos-backend/src/almotos_backend/{services/vehicles,routers/public_vehicles}.py`; `almotos-backend/tests/{test_domain,test_http_contract}.py`
+- **Por que:** o bot anunciava fotos em texto puro no Chatwoot (a imagem não saía no WhatsApp); "qual preço dela" virava handoff sem consultar `suggestedPrice`; `"honda start"` não casava com `"HONDA CG 160 START"` porque a busca exigia substring contínua. Fotos passam a `attachments[]` (URL pública baixada em multipart); o prompt/fallback obrigam buscar o preço cadastrado; a query do SoR e o `matchesSearch` usam tokens ILIKE (`honda` AND `start`).
+
 ## 2026-09-07 — Landing Instagram + catálogo em /estoque e multi-domínio
 
 - **Arquivos modificados:** `almotos-catalog/src/app/{page.tsx,estoque/page.tsx,sitemap.ts,motos/[slug]/page.tsx,motos/[slug]/not-found.tsx,privacidade/page.tsx}`; `almotos-catalog/src/middleware.ts`; `almotos-catalog/src/lib/{routes.ts,api.ts,vehicle.ts}`; `almotos-catalog/src/components/{catalog-page.tsx,landing/*}`; `almotos-backend/src/almotos_backend/services/vehicles.py`
