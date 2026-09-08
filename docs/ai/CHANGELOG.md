@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-08 — Chatwoot: debounce 4s e fim do pacing Evolution
+
+- **Arquivos modificados:** `almotos-ai-bot/app/{config,main}.py`; `almotos-ai-bot/app/routes/{chatwoot,evolution}.py`; `almotos-ai-bot/app/services/{message_buffer,reply_guard,chatwoot_chat_service,chatwoot_client,evolution_client,evolution_chat_service,whatsapp_service}.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
+- **Por que:** com a Meta Cloud API via Chatwoot, sleep/digitando/pacing proporcional só atrasavam a resposta. O webhook agora agrupa texto por `conversation_id` em memória (ADR-001: sem Postgres/Redis no bot), espera 4s e só dispara a IA se a geração do buffer ainda for a vigente — assim "tem foto?" + "da start 160" viram um único turno.
+
 ## 2026-09-08 — WhatsApp/Chatwoot: anexo de foto, preço antes do handoff, busca fuzzy
 
 - **Arquivos modificados:** `almotos-ai-bot/app/services/{chatwoot_client,chatwoot_chat_service}.py`; `almotos-ai/src/{chat/system-prompt,tools/ai-tools,tools/search-inventory,tools/get-vehicle-photos,inventory/kotlin-client,contracts/public-vehicle,mcp/create-server}.ts`; `almotos-backend/src/almotos_backend/{services/vehicles,routers/public_vehicles}.py`; `almotos-backend/tests/{test_domain,test_http_contract}.py`
