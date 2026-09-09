@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-08 — Contatos, propriedade da moto e relatórios por parceiro
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/003_ownership_and_sale_payout.py`; `almotos-backend/src/almotos_backend/{models/{enums,vehicle,commerce,finance},schemas/{vehicle,commerce,partner,finance},services/{vehicles,sales,purchases,partners,reports,vehicle_history},routers/{vehicles,sales,partners,reports}}.py`; `almotos-backend/tests/{test_domain,test_models,test_http_contract}.py`; `almotos-front/src/{types,lib/{api,validations/schemas},components/{forms/*,layout/app-sidebar},app/{contatos/*,clientes/*,motos/*,page,relatorios,guia}}.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** a aba Clientes engessava o cadastro; a mesma pessoa precisa comprar, vender e consignar. Motos passam a ter `OWN`/`THIRD_PARTY` + dono; venda de terceiro grava repasse e lucro da loja à mão (sem %). Relatórios somam esses campos. Catálogo/MCP continuam sem PII de dono (ADR-002). Schema só via Alembic (ADR-001).
+
 ## 2026-09-08 — Chatwoot: debounce 4s e fim do pacing Evolution
 
 - **Arquivos modificados:** `almotos-ai-bot/app/{config,main}.py`; `almotos-ai-bot/app/routes/{chatwoot,evolution}.py`; `almotos-ai-bot/app/services/{message_buffer,reply_guard,chatwoot_chat_service,chatwoot_client,evolution_client,evolution_chat_service,whatsapp_service}.py`; `almotos-ai-bot/.env.example`; `almotos-ai-bot/RAILWAY.md`
