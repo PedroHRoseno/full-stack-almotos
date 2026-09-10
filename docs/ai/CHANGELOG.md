@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-10 — Edição no caixa, estorno no cancelamento de venda, editar contato na lista
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/services/sales.py`; `almotos-backend/tests/test_domain.py`; `almotos-front/src/app/{fluxo-caixa,vendas,contatos}/page.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** o painel listava o caixa sem mutação, embora `PUT`/`DELETE /store-transactions` já existissem. Cancelar venda já persistia `CANCELLED`, mas `_cancel_payout_exits` só olhava categoria `REPASSE_PARCEIRO` e a UI de vendas ignorava `status` — o segundo clique falhava com 400. A listagem de contatos só tinha Detalhes; edição na lista reabre o form preenchido (CPF continua PK/obrigatório até a Fase 2 UUID).
+
 ## 2026-09-08 — Contatos, propriedade da moto e relatórios por parceiro
 
 - **Arquivos modificados:** `almotos-backend/alembic/versions/003_ownership_and_sale_payout.py`; `almotos-backend/src/almotos_backend/{models/{enums,vehicle,commerce,finance},schemas/{vehicle,commerce,partner,finance},services/{vehicles,sales,purchases,partners,reports,vehicle_history},routers/{vehicles,sales,partners,reports}}.py`; `almotos-backend/tests/{test_domain,test_models,test_http_contract}.py`; `almotos-front/src/{types,lib/{api,validations/schemas},components/{forms/*,layout/app-sidebar},app/{contatos/*,clientes/*,motos/*,page,relatorios,guia}}.tsx`; `docs/ai/CHANGELOG.md`
