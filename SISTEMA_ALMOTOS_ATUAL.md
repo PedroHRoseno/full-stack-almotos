@@ -134,7 +134,7 @@ CI do monorepo: GitHub Actions, Node **20**, Python **3.12**.
 | SGBD | **PostgreSQL 15** (Compose local Alpine; produção no Railway) |
 | Nome do banco (local) | `vehicle-sales-manager` |
 | ORM | SQLAlchemy 2.0 **async** + `asyncpg` |
-| Migrações | Alembic — revisões `001`, `002`, `003` sobre schema legado Hibernate/Flyway |
+| Migrações | Alembic — revisões `001`–`005` sobre schema legado Hibernate/Flyway |
 | DDL no startup | **Proibido** (ADR-001) |
 | Release (Railway) | `uv run --no-dev alembic upgrade head` **antes** do novo processo receber tráfego |
 | Relacionamentos ORM | FKs por coluna; **sem** `relationship()` declarados |
@@ -213,7 +213,7 @@ O Kotlin (`vehicle-sales-manager-v2-kotlin`) **não está neste workspace**. Có
 
 ```
 almotos-backend/
-├── alembic/versions/          # 001 UUID PK · 002 FIPE/tags · 003 ownership/repasse · 004 partner UUID
+├── alembic/versions/          # 001 UUID PK · 002 FIPE/tags · 003 ownership/repasse · 004 partner UUID · 005 caixa TEXT
 ├── src/almotos_backend/
 │   ├── main.py                # App, CORS, JWT middleware, /health, routers
 │   ├── config.py              # Settings

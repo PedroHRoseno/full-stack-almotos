@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-11 — Venda de terceiro: 500 no payout e descrição do repasse
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{main,schemas/commerce,services/sales}.py`; `almotos-backend/alembic/versions/005_store_transaction_description_text.py`; `almotos-backend/tests/test_http_contract.py`; `almotos-front/src/components/forms/form-venda.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** POST `/sales` de moto de terceiro manda `payoutPartner.id`. UUID vazio/inválido fazia o handler 422 serializar `exc.errors()` com objetos não-JSON e virar 500. `jsonable_encoder` devolve 422; `PartnerRef.id` vazio vira `null`. A descrição do repasse não inclui mais o UUID (estouro de VARCHAR(255) no Hibernate). Revisão `005` promove `store_transactions.description` a TEXT. IntegrityError/DataError passam a 409/400 em vez de 500 genérico.
+
 ## 2026-09-10 — Fase 2: PK UUID de contatos e CPF/CNPJ opcional
 
 - **Arquivos modificados:** `almotos-backend/alembic/versions/004_partner_uuid_pk.py`; `almotos-backend/src/almotos_backend/{models/{partner,commerce,vehicle},schemas/{partner,commerce,vehicle,finance},services/{partners,sales,purchases,exchanges,vehicles,reports,vehicle_history},routers/{partners,vehicles,reports},utils/documents}.py`; `almotos-backend/tests/{test_models,test_domain,test_http_contract}.py`; `almotos-front/src/{types,lib/{api,masks,validations/schemas},components/forms/*,app/{contatos/*,clientes/*,relatorios,vendas,compras,trocas,motos,guia}}.tsx`; `docs/ai/CHANGELOG.md`; `SISTEMA_ALMOTOS_ATUAL.md`
