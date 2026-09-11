@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-10 — Fase 2: PK UUID de contatos e CPF/CNPJ opcional
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/004_partner_uuid_pk.py`; `almotos-backend/src/almotos_backend/{models/{partner,commerce,vehicle},schemas/{partner,commerce,vehicle,finance},services/{partners,sales,purchases,exchanges,vehicles,reports,vehicle_history},routers/{partners,vehicles,reports},utils/documents}.py`; `almotos-backend/tests/{test_models,test_domain,test_http_contract}.py`; `almotos-front/src/{types,lib/{api,masks,validations/schemas},components/forms/*,app/{contatos/*,clientes/*,relatorios,vendas,compras,trocas,motos,guia}}.tsx`; `docs/ai/CHANGELOG.md`; `SISTEMA_ALMOTOS_ATUAL.md`
+- **Por que:** a PK em `partners.document` impedia contato sem CPF/CNPJ. `partners.id` passa a ser UUID; `document` fica UNIQUE NULLABLE (vários NULL ok no Postgres). Vínculos de venda/compra/troca/moto usam o UUID; documento repetido em outro id devolve 409. Painel: `/contatos/[id]`, selects por `partner.id`, form com documento opcional. Catálogo/MCP sem PII (ADR-002). Schema só via Alembic (ADR-001); release já roda `alembic upgrade head`. Rollback da 004 só é seguro se nenhum contato sem documento tiver sido criado.
+
 ## 2026-09-10 — Edição no caixa, estorno no cancelamento de venda, editar contato na lista
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/services/sales.py`; `almotos-backend/tests/test_domain.py`; `almotos-front/src/app/{fluxo-caixa,vendas,contatos}/page.tsx`; `docs/ai/CHANGELOG.md`
