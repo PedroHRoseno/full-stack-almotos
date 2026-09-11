@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-11 — Ordenação da listagem de motos
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/services/vehicles.py`; `almotos-front/src/{lib/api.ts,app/motos/page.tsx}`; `docs/ai/CHANGELOG.md`
+- **Por que:** GET `/vehicles` já aceitava `sort`, mas o painel travava em `createdAt,desc` e a grade `sm:` dos filtros não cobria preço/km/ano. O SoR passa a mapear também `suggestedPrice`, `kilometersDriven`, `manufactureYear` e `modelYear` (preço nulo vai para o fim). A tabela de Motos ganha select “Mais recente” e cabeçalhos clicáveis, sem misturar isso com os chips de estoque/catálogo/origem.
+
 ## 2026-09-11 — Modais sem scroll horizontal e grade no container
 
 - **Arquivos modificados:** `almotos-front/src/components/ui/{dialog,alert-dialog,searchable-select,select,form-field}.tsx`; `almotos-front/src/components/forms/{form-venda,form-compra,form-troca,form-parceiro,form-veiculo}.tsx`; `almotos-front/src/components/vehicle/vehicle-photo-pipeline.tsx`; `almotos-front/src/app/{vendas,compras,trocas,motos,contatos,contatos/[id]}/page.tsx`; `docs/ai/CHANGELOG.md`
