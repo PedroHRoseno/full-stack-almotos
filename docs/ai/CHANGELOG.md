@@ -2,10 +2,15 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-11 — Modais sem scroll horizontal e grade no container
+
+- **Arquivos modificados:** `almotos-front/src/components/ui/{dialog,alert-dialog,searchable-select,select,form-field}.tsx`; `almotos-front/src/components/forms/{form-venda,form-compra,form-troca,form-parceiro,form-veiculo}.tsx`; `almotos-front/src/components/vehicle/vehicle-photo-pipeline.tsx`; `almotos-front/src/app/{vendas,compras,trocas,motos,contatos,contatos/[id]}/page.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** o `DialogContent` usava `w-full` + `max-w-lg` e a grade `sm:grid-cols-2` olhava o viewport, não o modal. Em desktop o formulário de venda/compra/troca ia para 2 colunas dentro de ~512px e o `SearchableSelect` (label longo + botão +) gerava barra horizontal mesmo com tela larga. O envelope agora é `w-[calc(100%-2rem)]` com `overflow-x-hidden`; formulários longos abrem em `max-w-3xl`/`max-w-2xl`; a grade usa `@container` + `@lg:grid-cols-2`.
+
 ## 2026-09-11 — Venda de terceiro: 500 no payout e descrição do repasse
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/{main,schemas/commerce,services/sales}.py`; `almotos-backend/alembic/versions/005_store_transaction_description_text.py`; `almotos-backend/tests/test_http_contract.py`; `almotos-front/src/components/forms/form-venda.tsx`; `docs/ai/CHANGELOG.md`
-- **Por que:** POST `/sales` de moto de terceiro manda `payoutPartner.id`. UUID vazio/inválido fazia o handler 422 serializar `exc.errors()` com objetos não-JSON e virar 500. `jsonable_encoder` devolve 422; `PartnerRef.id` vazio vira `null`. A descrição do repasse não inclui mais o UUID (estouro de VARCHAR(255) no Hibernate). Revisão `005_store_tx_description_text` (≤32 chars: `alembic_version.version_num` legado) promove `store_transactions.description` a TEXT e alarga `version_num`. IntegrityError/DataError passam a 409/400 em vez de 500 genérico.
+- **Por que:** POST `/sales` de moto de terceiro manda `payoutPartner.id`. UUID vazio/inválido fazia o handler 422 serializar `exc.errors()` com objetos não-JSON e virar 500. `jsonable_encoder` devolve 422; `PartnerRef.id` vazio vira `null`. A descrição do repasse não inclui mais o UUID (estouro de VARCHAR(255) no Hibernate). Revisão `005_store_tx_description_text` (≤32 chars: `alembic_version.version_num` legado) promove `store_transactions.description` a TEXT e alarga `version_num`. `006_repasse_constraints` remove CHECKs Hibernate que bloqueiam `THIRD_PARTY` / `REPASSE_PARCEIRO`. IntegrityError/DataError passam a 409/400 em vez de 500 genérico.
 
 ## 2026-09-10 — Fase 2: PK UUID de contatos e CPF/CNPJ opcional
 
