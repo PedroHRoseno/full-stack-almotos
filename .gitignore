@@ -18,3 +18,11 @@ DEPLOY_PROD.local.md
 
 # Tutoriais, planos e notas temporárias (ver .cursor/rules/docs-scratch.mdc)
 docs/scratch/
+
+# Dump de produção / cópia local — PII e financeiro; MUST NOT ir pro git
+dumps/
+backups/
+*.dump
+*.backup
+*.sql.gz
+*.pgdump

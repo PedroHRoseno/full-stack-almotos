@@ -2,6 +2,26 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-11 — Troca exige contato do cliente
+
+- **Arquivos modificados:** `almotos-front/src/components/forms/form-troca.tsx`; `almotos-front/src/lib/validations/schemas.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** o fallback do backend busca a última venda da moto que *entra*. Numa troca típica essa moto nunca foi vendida pela loja, então omitir o contato dava 400. O formulário agora exige o cliente e permite cadastrá-lo no +.
+
+## 2026-09-11 — Sheet não fecha ao clicar na lista
+
+- **Arquivos modificados:** `almotos-front/src/components/ui/sheet.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** o drawer à direita existe para editar e ainda usar a lista. O Radix Dialog fechava em `pointerDown`/`interact`/`focus` fora, mesmo com `modal={false}`. Só X (e Escape) fecham; clique na grade, filtros e menu passam.
+
+## 2026-09-11 — Laboratório SQLite local (sem Docker)
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{config,db,main,local_sqlite}.py`; `almotos-backend/{pyproject.toml,.env.example,.gitignore}`; `almotos-backend/tests/{test_config,test_local_sqlite}.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** o painel precisa de um SoR local sem Postgres. SQLite aguenta o volume (~50 motos), mas `pg_dump` não restaura nele. `python -m almotos_backend.local_sqlite` faz `create_all` + seed do ciclo financeiro; a API **não** roda DDL no startup (ADR-001). Railway recusa `DB_URL` sqlite. Dump de produção continua sendo Postgres.
+
+## 2026-09-11 — Ciclo financeiro, contas e ficha operacional
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{models,schemas,services,routers}/*`; `almotos-backend/alembic/versions/007_bank_accounts.py`; `almotos-backend/tests/{test_domain,test_models,test_vehicles_update,test_http_contract}.py`; `almotos-front/src/{types,lib/{api,field-hints,vehicle-status,validations/schemas},components/{ui/sheet,ui/form-field,forms/*},app/{motos,motos/[placa],vendas,compras,trocas,fluxo-caixa,relatorios,contas,layout}}`; `docs/ai/CHANGELOG.md`
+- **Por que:** todo veículo em estoque precisa de origem + custo base; venda OWN/THIRD_PARTY calcula lucro (não digita); troca atômica sem Sale+Purchase; consignado volta sem caixa. Contas bancárias com saldo e conciliação; DRE operacional separado das retiradas da família. Painel: Sheet à direita (lista clicável), ficha em leitura com Vender/Troca/Devolver/Estornar, tooltips e seletor de conta. Status canônico `AVAILABLE`/`SOLD`/`INACTIVE` (aliases `DISPONIVEL`/`VENDIDO`). Catálogo/MCP sem custo/payout/conta (ADR-002). Schema só via Alembic `007` (ADR-001).
+
 ## 2026-09-11 — Ordenação da listagem de motos
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/services/vehicles.py`; `almotos-front/src/{lib/api.ts,app/motos/page.tsx}`; `docs/ai/CHANGELOG.md`
