@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-14 — Release Alembic no Railway (007)
+
+- **Arquivos modificados:** `almotos-backend/alembic/env.py`; `almotos-backend/railway.json`; `almotos-backend/src/almotos_backend/main.py`; `almotos-backend/tests/test_config.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** o app em produção já consulta `vehicles.acquisition_origin`, mas o Postgres ainda está pré-007. `alembic/env.py` metia o DSN no ConfigParser; senha com `%` (`quote_plus`) derruba o `releaseCommand` e o container sobe sem o DDL. O engine agora recebe o DSN direto. GET `/vehicles` com coluna ausente passa a 503 com o comando de upgrade. **Ainda precisa** `uv run --no-dev alembic upgrade head` no Railway.
+
 ## 2026-09-11 — Troca exige contato do cliente
 
 - **Arquivos modificados:** `almotos-front/src/components/forms/form-troca.tsx`; `almotos-front/src/lib/validations/schemas.ts`; `docs/ai/CHANGELOG.md`
