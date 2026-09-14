@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-14 — 007: dropar CHECK de status Hibernate
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/007_bank_accounts.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** `vehicles_status_check` só aceita `DISPONIVEL`/`VENDIDO`. O rename para `AVAILABLE`/`SOLD` violava o CHECK e o upgrade 006→007 rolava back. A 007 ainda não gravou em `alembic_version`; o drop do CHECK entra na mesma revision.
+
 ## 2026-09-14 — Release Alembic no Railway (007)
 
 - **Arquivos modificados:** `almotos-backend/alembic/env.py`; `almotos-backend/railway.json`; `almotos-backend/src/almotos_backend/main.py`; `almotos-backend/tests/test_config.py`; `docs/ai/CHANGELOG.md`
