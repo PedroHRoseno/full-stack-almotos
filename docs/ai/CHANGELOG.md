@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Template Meta alerta_moto_disponivel
+
+- **Arquivos modificados:** `almotos-ai-bot/app/services/{whatsapp_service,wishlist_job}.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/{.env.example,RAILWAY.md}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o job da lista de espera precisa do template aprovado `alerta_moto_disponivel` (marca, modelo, URL do catálogo). `send_wishlist_notification` POSTa na Graph v21.0 e só então o poll marca COMPLETED.
+
+## 2026-09-17 — Lista de espera (wishlist) por polling
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{models,schemas,services,routers,security,config,main}*`; `almotos-backend/alembic/versions/008_vehicle_interests.py`; `almotos-backend/tests/{test_models,test_config,test_http_contract,test_vehicle_interests}.py`; `almotos-ai/src/{config,chat/system-prompt,tools/{ai-tools,register-vehicle-interest},mcp/create-server}.ts`; `almotos-ai-bot/app/{main,config,scheduler,services/{backend_client,wishlist_job,whatsapp_service}}.py`; `almotos-ai-bot/{requirements.txt,.env.example,RAILWAY.md}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o cliente pedia uma moto fora de estoque e o bot encerrava o assunto. O SoR passa a persistir `vehicle_interests` (Alembic `008`, ADR-001). A tool pública `registerVehicleInterest` grava o aviso (não devolve telefone — ADR-002) e o prompt só dispara se o cliente aceitar. O bot, como thin client, faz polling a cada 30 min (APScheduler), cruza GET pending com o catálogo público e envia template Meta; COMPLETED só depois do envio. GET/PATCH de interesses exigem JWT ou `X-Internal-Key` — não ficam em `/api/public`.
+
 ## 2026-09-16 — Pré-vendas: equivalência, faixa de preço e crédito antes do handoff
 
 - **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime}.ts`; `almotos-ai/src/tools/{ai-tools,search-inventory}.ts`; `almotos-ai/src/{contracts/public-vehicle,inventory/kotlin-client,mcp/create-server}.ts`; `almotos-ai-bot/app/services/{almotos_ai_client,chatwoot_chat_service}.py`; `docs/ai/CHANGELOG.md`
