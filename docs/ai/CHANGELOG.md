@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Prompt: substitutas só do JSON da tool
+
+- **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** o mapa Pop→Biz/Factor era lido como estoque e o bot citava motos que não existiam. Modelo ausente: não responder até a segunda `searchInventory`; sugerir no máximo 2 itens do JSON; se count 0, só lista de espera. `registerVehicleInterest` só após "Sim, quero ser avisado".
+
 ## 2026-09-17 — Feed CSV Meta Commerce Manager
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/{config,main,routers/{__init__,catalog},security/middleware,services/meta_feed}.py`; `almotos-backend/{.env.example,tests/{test_http_contract,test_meta_feed}.py}`; `docs/ai/CHANGELOG.md`
