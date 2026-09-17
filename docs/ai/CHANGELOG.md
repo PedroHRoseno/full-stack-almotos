@@ -2,6 +2,21 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — registerVehicleInterest via /api/public
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{routers/{public_interests,__init__},schemas/vehicle_interest,main}.py`; `almotos-backend/tests/{test_vehicle_interests,test_http_contract}.py`; `almotos-ai/src/tools/register-vehicle-interest.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** no Railway o `almotos-ai` já lê o estoque em `/api/public/vehicles` sem JWT. `POST /vehicles/interests` exigia `X-Internal-Key` e o orquestrador tomava 401 (`Não autenticado`) mesmo com a tool enviando a chave se o SoR não tinha `INTERNAL_API_KEY`. O cadastro público grava o lead no SoR e devolve só marca/modelo/status — sem telefone (ADR-002). GET/PATCH da lista continuam autenticados para o painel e o bot.
+
+## 2026-09-17 — Painel de leads (lista de espera)
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{routers,services}/vehicle_interests.py`; `almotos-backend/tests/{test_vehicle_interests,test_http_contract}.py`; `almotos-front/src/{app/leads/page.tsx,components/{layout/app-sidebar,ui/dropdown-menu}.tsx,lib/{api,masks,roles}.ts,types/index.ts}`; `almotos-front/package.json`; `docs/ai/CHANGELOG.md`
+- **Por que:** os `VehicleInterest` só existiam para o bot. O painel passa a listar GET `/vehicles/interests` (página Spring, `createdAt DESC`, filtro opcional de status) e a equipe pode PATCH `complete`/`cancel` nos pendentes. Telefone continua no SoR autenticado — não entra em tool pública (ADR-002). FINANCE não vê o menu.
+
+## 2026-09-17 — registerVehicleInterest 401 (X-Internal-Key)
+
+- **Arquivos modificados:** `almotos-ai/src/tools/register-vehicle-interest.ts`; `almotos-ai/.env.example`; `almotos-backend/src/almotos_backend/security/middleware.py`; `almotos-backend/tests/test_vehicle_interests.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** a tool pública grava no SoR com `X-Internal-Key`, não JWT. Sem `INTERNAL_API_KEY` no `almotos-ai` o header era omitido e o FastAPI devolvia 401 genérico. A tool agora recusa subir a chamada sem a chave; chave errada no SoR vira `Chave interna inválida`. A mesma variável precisa existir em `almotos-ai`, `almotos-backend` e `almotos-ai-bot`.
+
 ## 2026-09-17 — RBAC FINANCE (vitrine interna)
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/{models/enums,deps,schemas/{auth,users,vehicle},security/jwt,routers/{vehicles,sales,purchases,exchanges,reports,financial_movements,store_transactions,bank_accounts,vehicle_images}}.py`; `almotos-backend/tests/test_rbac_finance.py`; `almotos-front/src/{lib/roles.ts,types/index.ts,contexts/AuthContext.tsx,components/{auth/AuthGuard,layout/app-sidebar,forms/form-veiculo}.tsx,app/{login,configuracoes,motos,motos/[placa]}/page.tsx}`; `docs/ai/CHANGELOG.md`
