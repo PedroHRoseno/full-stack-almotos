@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — RBAC FINANCE (vitrine interna)
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{models/enums,deps,schemas/{auth,users,vehicle},security/jwt,routers/{vehicles,sales,purchases,exchanges,reports,financial_movements,store_transactions,bank_accounts,vehicle_images}}.py`; `almotos-backend/tests/test_rbac_finance.py`; `almotos-front/src/{lib/roles.ts,types/index.ts,contexts/AuthContext.tsx,components/{auth/AuthGuard,layout/app-sidebar,forms/form-veiculo}.tsx,app/{login,configuracoes,motos,motos/[placa]}/page.tsx}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o especialista de financiamento precisa entrar no painel só como vitrine comercial. Role `FINANCE` no JWT; `require_ops` (ADMIN|USER) devolve 403 em caixa, relatórios, custos, histórico e mutações de venda/compra/troca. GET da ficha sanitiza `baseCost`/`agreedPayout`. O front oculta menus transacionais, botões da ficha e qualquer custo/lucro.
+
 ## 2026-09-17 — Template Meta alerta_moto_disponivel
 
 - **Arquivos modificados:** `almotos-ai-bot/app/services/{whatsapp_service,wishlist_job}.py`; `almotos-ai-bot/app/config.py`; `almotos-ai-bot/{.env.example,RAILWAY.md}`; `docs/ai/CHANGELOG.md`
