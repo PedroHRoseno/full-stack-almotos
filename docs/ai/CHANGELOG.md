@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-16 — Pré-vendas: equivalência, faixa de preço e crédito antes do handoff
+
+- **Arquivos modificados:** `almotos-ai/src/chat/{system-prompt,runtime}.ts`; `almotos-ai/src/tools/{ai-tools,search-inventory}.ts`; `almotos-ai/src/{contracts/public-vehicle,inventory/kotlin-client,mcp/create-server}.ts`; `almotos-ai-bot/app/services/{almotos_ai_client,chatwoot_chat_service}.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** o bot encerrava busca vazia, ignorava orçamento fora da faixa e transferia financiamento sem CPF/nascimento/CNH/telefone. O prompt passa a sugerir equivalentes por categoria; `searchInventory` filtra `minPrice`/`maxPrice` e devolve as mais próximas se a faixa vier vazia. O Chatwoot não tem campo `reason` no `toggle_status` — o `reason` da tool vira nota privada para o vendedor. Handoff de financiamento só depois dos dados (prompt + guarda no bot).
+
 ## 2026-09-14 — 007: dropar CHECK de status Hibernate
 
 - **Arquivos modificados:** `almotos-backend/alembic/versions/007_bank_accounts.py`; `docs/ai/CHANGELOG.md`
