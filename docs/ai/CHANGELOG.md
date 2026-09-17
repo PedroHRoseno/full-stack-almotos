@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Prompt: espera + alternativas na mesma mensagem
+
+- **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** modelo ausente não pode encerrar o chat. A mesma resposta convida à lista de espera e sugere até 2 da categoria. `registerVehicleInterest` só após aceite explícito, com phone/brand/model.
+
 ## 2026-09-17 — Alembic no deploy Railway (preDeploy + boot)
 
 - **Arquivos modificados:** `almotos-backend/railway.json`; `almotos-backend/Dockerfile`; `.github/workflows/ci-cd.yml`; `docs/ai/CHANGELOG.md`
