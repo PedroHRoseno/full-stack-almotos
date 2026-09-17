@@ -465,7 +465,8 @@ jobs:
           set -euo pipefail
           : "${RAILWAY_TOKEN:?Defina RAILWAY_TOKEN (ou RAILWAY_TOKEN_BACKEND) em Settings → Secrets}"
           : "${RAILWAY_SERVICE:?Defina RAILWAY_SERVICE_BACKEND em Variables ou Secrets}"
-          railway up --ci \
+          # Sem --ci: --ci sai no fim do *build* e não vê falha do pre-deploy/Alembic.
+          railway up \
             ${RAILWAY_PROJECT_ID:+--project "$RAILWAY_PROJECT_ID"} \
             ${RAILWAY_ENVIRONMENT:+--environment "$RAILWAY_ENVIRONMENT"} \
             --service "$RAILWAY_SERVICE"

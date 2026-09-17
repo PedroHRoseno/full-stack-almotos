@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Alembic no deploy Railway (preDeploy + boot)
+
+- **Arquivos modificados:** `almotos-backend/railway.json`; `almotos-backend/Dockerfile`; `.github/workflows/ci-cd.yml`; `docs/ai/CHANGELOG.md`
+- **Por que:** `deploy.releaseCommand` não existe no schema do Railway (`preDeployCommand`). O campo era ignorado, o container subia e o schema ficava para trás. Migrate passa a `preDeployCommand` (antes do tráfego) e ao `CMD`/`startCommand` (antes do uvicorn). O CD do backend deixa de usar `railway up --ci`, que saía no fim do build e não via falha do pre-deploy. FastAPI continua sem DDL no lifespan (ADR-001).
+
+## 2026-09-17 — CHECK users.role aceita FINANCE (009)
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/009_users_role_finance.py`; `almotos-backend/src/almotos_backend/main.py`; `almotos-backend/tests/test_config.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** o app já valida FINANCE, mas o Postgres legado (`users_role_check` Hibernate) só aceita ADMIN/USER. INSERT estoura CheckViolation. A 009 dropa o CHECK antigo e recria com FINANCE (ADR-001).
+
 ## 2026-09-17 — Reverte POST público de interesses
 
 - **Arquivos modificados:** `almotos-ai/src/tools/register-vehicle-interest.ts`; `almotos-backend/src/almotos_backend/{main,routers/__init__,schemas/vehicle_interest}.py`; `almotos-backend/tests/{test_vehicle_interests,test_http_contract}.py`; `docs/ai/CHANGELOG.md`
