@@ -2,10 +2,10 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
-## 2026-09-17 — registerVehicleInterest via /api/public
+## 2026-09-17 — Reverte POST público de interesses
 
-- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{routers/{public_interests,__init__},schemas/vehicle_interest,main}.py`; `almotos-backend/tests/{test_vehicle_interests,test_http_contract}.py`; `almotos-ai/src/tools/register-vehicle-interest.ts`; `docs/ai/CHANGELOG.md`
-- **Por que:** no Railway o `almotos-ai` já lê o estoque em `/api/public/vehicles` sem JWT. `POST /vehicles/interests` exigia `X-Internal-Key` e o orquestrador tomava 401 (`Não autenticado`) mesmo com a tool enviando a chave se o SoR não tinha `INTERNAL_API_KEY`. O cadastro público grava o lead no SoR e devolve só marca/modelo/status — sem telefone (ADR-002). GET/PATCH da lista continuam autenticados para o painel e o bot.
+- **Arquivos modificados:** `almotos-ai/src/tools/register-vehicle-interest.ts`; `almotos-backend/src/almotos_backend/{main,routers/__init__,schemas/vehicle_interest}.py`; `almotos-backend/tests/{test_vehicle_interests,test_http_contract}.py`; `docs/ai/CHANGELOG.md`
+- **Por que:** o 401 no Railway era `INTERNAL_API_KEY` ausente/diferente, não falta de rota pública. Cadastro de lead volta a `POST /vehicles/interests` com `X-Internal-Key`. A mesma chave nos três serviços (backend, almotos-ai, bot). Sem a variável no AI a tool falha cedo, sem ir ao SoR.
 
 ## 2026-09-17 — Painel de leads (lista de espera)
 
