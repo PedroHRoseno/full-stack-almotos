@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Feed CSV Meta Commerce Manager
+
+- **Arquivos modificados:** `almotos-backend/src/almotos_backend/{config,main,routers/{__init__,catalog},security/middleware,services/meta_feed}.py`; `almotos-backend/{.env.example,tests/{test_http_contract,test_meta_feed}.py}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o Commerce Manager precisa de um data feed público das motos publicadas e em estoque. `GET /api/catalog/meta-feed.csv` devolve `text/csv` com as colunas da Meta (`id` = UUID, sem placa — ADR-002). O `link` usa o slug da vitrine (`CATALOG_PUBLIC_URL/motos/{slug}`).
+
 ## 2026-09-17 — Prompt: espera + alternativas na mesma mensagem
 
 - **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
