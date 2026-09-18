@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-18 — Lead manual na lista de espera
+
+- **Arquivos modificados:** `almotos-front/src/app/leads/page.tsx`; `almotos-front/src/lib/api.ts`; `almotos-front/src/types/index.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** a wishlist já gravava via bot (`POST /vehicles/interests` + JWT ou `X-Internal-Key`). O painel só listava/finalizava. A equipe passa a cadastrar o mesmo lead (telefone, marca, modelo) pelo botão Novo lead em `/leads`.
+
 ## 2026-09-17 — Prompt especialista (XML + consultoria)
 
 - **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
