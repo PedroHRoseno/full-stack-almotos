@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-18 — Wishlist: ConnectError no SoR
+
+- **Arquivos modificados:** `almotos-ai-bot/app/{config,main}.py`; `almotos-ai-bot/app/services/backend_client.py`; `almotos-ai-bot/.env.example`; `docs/ai/CHANGELOG.md`
+- **Por que:** o job no Railway tentava `localhost:8080` (default) e o TCP falhava com ConnectError. Cliente passa a recusar loopback na plataforma, normalizar URL e logar `ALMOTOS_BACKEND_URL` sem stack. Produção: `https://api.almotoscaruaru.com.br`.
+
 ## 2026-09-18 — Job da wishlist a cada 1 min
 
 - **Arquivos modificados:** `almotos-ai-bot/app/{config,scheduler}.py`; `almotos-ai-bot/.env.example`; `docs/ai/CHANGELOG.md`
