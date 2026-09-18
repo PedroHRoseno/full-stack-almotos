@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-18 — Job da wishlist a cada 1 min
+
+- **Arquivos modificados:** `almotos-ai-bot/app/{config,scheduler}.py`; `almotos-ai-bot/.env.example`; `docs/ai/CHANGELOG.md`
+- **Por que:** o poll da lista de espera (template Meta `alerta_moto_disponivel`) estava em 30 min e só rodava depois do primeiro intervalo. Padrão passa a 1 min (`WISHLIST_POLL_INTERVAL_MINUTES`), com execução na subida do processo, para validar o template recém-aprovado em produção.
+
 ## 2026-09-18 — Pedir a moto antes do handoff (exceto financiamento)
 
 - **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `almotos-ai/src/tools/ai-tools.ts`; `almotos-ai/src/mcp/create-server.ts`; `docs/ai/CHANGELOG.md`
