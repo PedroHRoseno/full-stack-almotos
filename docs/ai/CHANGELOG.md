@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-18 — Pedir a moto antes do handoff (exceto financiamento)
+
+- **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `almotos-ai/src/tools/ai-tools.ts`; `almotos-ai/src/mcp/create-server.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** interesse geral, preço, visita ou desconto sem modelo explícito ia para `handoffToSeller` com `model` vazio. Fora de financiamento o bot pergunta qual moto; financiamento continua podendo seguir sem ela.
+
+## 2026-09-18 — handoffToSeller aceita model null
+
+- **Arquivos modificados:** `almotos-ai/src/contracts/{tool-args,public-vehicle}.ts`; `almotos-ai/src/tools/ai-tools.ts`; `almotos-ai/src/mcp/create-server.ts`; `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** o modelo envia `{"reason":"Financiamento","model":null}` e `z.string().optional()` rejeita null. Campos opcionais das tools passam a `nullish` + trim; handoff sem moto no contexto segue válido.
+
 ## 2026-09-18 — Lead manual na lista de espera
 
 - **Arquivos modificados:** `almotos-front/src/app/leads/page.tsx`; `almotos-front/src/lib/api.ts`; `almotos-front/src/types/index.ts`; `docs/ai/CHANGELOG.md`
