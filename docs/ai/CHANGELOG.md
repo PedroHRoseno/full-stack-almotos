@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-17 — Prompt especialista (XML + consultoria)
+
+- **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
+- **Por que:** o prompt passa a XML (persona, escopo, guarda financeira, injeção, perfil de uso, CBS/ABS/Flex, troca, juros vs financiamento). Mantém a trava de estoque: nomes do mapa só viram `model=` da tool; substitutas e fotos só do JSON; lista de espera só após aceite + telefone.
+
 ## 2026-09-17 — Prompt: substitutas só do JSON da tool
 
 - **Arquivos modificados:** `almotos-ai/src/chat/system-prompt.ts`; `docs/ai/CHANGELOG.md`
