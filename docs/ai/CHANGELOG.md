@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-19 — CTA wa.me do catálogo via env
+
+- **Arquivos modificados:** `almotos-catalog/src/lib/{api,company}.ts`; `almotos-catalog/.env.example`; `docs/ai/CHANGELOG.md`
+- **Por que:** o número do WhatsApp do site já lia `NEXT_PUBLIC_WHATSAPP_URL`; o fallback ficou explícito (`5581921416069`). Troca de número é no deploy do **catálogo (Vercel)**, não no Railway do bot. `NEXT_PUBLIC_*` exige rebuild.
+
 ## 2026-09-18 — Wishlist: ConnectError no SoR
 
 - **Arquivos modificados:** `almotos-ai-bot/app/{config,main}.py`; `almotos-ai-bot/app/services/backend_client.py`; `almotos-ai-bot/.env.example`; `docs/ai/CHANGELOG.md`
