@@ -2,6 +2,16 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-09-26 — Comparação com a Tabela FIPE
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/011_vehicle_fipe_value.py`; `almotos-backend/src/almotos_backend/{models/vehicle,schemas/vehicle,services/vehicles,local_sqlite}.py`; `almotos-backend/tests/test_domain.py`; `almotos-front/src/{lib/fipe-compare.ts,types/index.ts,components/forms/form-veiculo.tsx,app/motos/page.tsx}`; `almotos-catalog/src/{lib/{types,vehicle}.ts,components/vehicle-card.tsx,app/motos/[slug]/page.tsx}`; `almotos-ai/src/{contracts/public-vehicle.ts,inventory/kotlin-client.ts,mcp/create-server.ts}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o SoR passa a guardar o `fipe_value` consultado no cadastro e calcula `fipeDiscountPercentage`, `isBelowFipe` (≤ −3%) e `fipeSavingsAmount` na ficha admin e no veículo público. O painel mostra o indicador ao lado do preço e uma badge no estoque. A vitrine destaca motos abaixo da FIPE. O `/v1/inventory` repassa esses campos para o catálogo; `searchInventory` e o recurso MCP continuam só com o preço cadastrado (a IA não negocia desconto).
+
+## 2026-09-26 — Caixa só com StoreTransaction (sem contas bancárias)
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/010_drop_bank_accounts.py`; `almotos-backend/src/almotos_backend/{models/{enums,commerce,finance,__init__},schemas/{commerce,finance},services/{store_transactions,sales,purchases,exchanges,costs,movements,reports},routers/__init__,main,local_sqlite}.py`; removidos `models/bank_account.py`, `services/bank_accounts.py`, `routers/bank_accounts.py`; `almotos-backend/tests/{test_models,test_rbac_finance,test_http_contract,test_domain}.py`; `almotos-front/src/{types,lib/{api,validations/schemas,field-hints,roles},components/{forms/{form-venda,form-compra,form-troca},layout/app-sidebar},app/{fluxo-caixa/page,motos/[placa]/page}}.tsx`; removidos `app/contas/page.tsx`, `components/forms/bank-account-select.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** o negócio acompanha só o caixa operacional da loja (ENTRY/EXIT). Contas, saldos por banco e conciliação saíram. Venda/compra/troca/despesa não escolhem banco. Categorias enxutas: venda, diferença na troca, aportes, compra, repasse de consignado, despesas e retiradas. Resultado do veículo continua `venda − custo (ou repasse)`.
+
 ## 2026-09-19 — CTA wa.me do catálogo via env
 
 - **Arquivos modificados:** `almotos-catalog/src/lib/{api,company}.ts`; `almotos-catalog/.env.example`; `docs/ai/CHANGELOG.md`
