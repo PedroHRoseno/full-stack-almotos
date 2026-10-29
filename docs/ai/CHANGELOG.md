@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-10-29 — Gerador de documentos no painel
+
+- **Arquivos modificados:** `almotos-front/package.json`; `almotos-front/src/lib/documents.ts`; `almotos-front/src/components/documents/`; `almotos-front/src/app/documentos/page.tsx`; `almotos-front/src/components/layout/app-sidebar.tsx`; `almotos-front/src/app/{vendas,motos/[placa]}/page.tsx`; `docs/ai/CHANGELOG.md`
+- **Por que:** contrato, recibo e termo de consignação passam a ser montados no navegador com `@react-pdf/renderer`, lendo moto e contato pelos endpoints já existentes do painel (`/api/proxy`). Não há writer novo nem mudança de contrato no SoR. Chassi e RENAVAM não existem no cadastro e só entram no PDF se forem digitados. O valor impresso é o informado na tela ou o preço já gravado na venda, sem cálculo de parcela, desconto ou comissão.
+
 ## 2026-09-26 — Comparação com a Tabela FIPE
 
 - **Arquivos modificados:** `almotos-backend/alembic/versions/011_vehicle_fipe_value.py`; `almotos-backend/src/almotos_backend/{models/vehicle,schemas/vehicle,services/vehicles,local_sqlite}.py`; `almotos-backend/tests/test_domain.py`; `almotos-front/src/{lib/fipe-compare.ts,types/index.ts,components/forms/form-veiculo.tsx,app/motos/page.tsx}`; `almotos-catalog/src/{lib/{types,vehicle}.ts,components/vehicle-card.tsx,app/motos/[slug]/page.tsx}`; `almotos-ai/src/{contracts/public-vehicle.ts,inventory/kotlin-client.ts,mcp/create-server.ts}`; `docs/ai/CHANGELOG.md`
