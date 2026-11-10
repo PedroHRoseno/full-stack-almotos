@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-10 — Moto elétrica sem placa e marca livre
+
+- **Arquivos modificados:** `almotos-backend/alembic/versions/012_vehicle_optional_plate.py`; `almotos-backend/src/almotos_backend/{models/vehicle,schemas/{vehicle,commerce,finance},services/{vehicles,sales,purchases,exchanges,costs},routers/vehicles}.py`; `almotos-backend/tests/{test_models,test_domain,test_http_contract,test_vehicles_update}.py`; `almotos-front/src/{types/index.ts,lib/{api,validations/schemas,vehicle-ref}.ts,components/{ui/{popover,command,creatable-combobox},forms/{form-veiculo,form-venda,form-compra,form-troca},documents/{documentos-workspace,ReceiptPdf}}.tsx,app/{motos/page,motos/[placa]/page,contatos/[id]/page,consulta-fipe/page}.tsx}`; `docs/ai/CHANGELOG.md`
+- **Por que:** o estoque passa a aceitar moto sem placa (elétrica) e marca fora da lista antiga de carros. `license_plate` fica anulável; `brand` continua `VARCHAR` e o cadastro grava texto livre. `POST /vehicles` devolve a ficha com `id`. A ficha, a venda, a compra e a troca resolvem o veículo pela placa ou, se o caminho for UUID, pelo id. O painel sugere Honda e Yamaha no topo e deixa adicionar white label.
+
 ## 2026-10-29 — Gerador de documentos no painel
 
 - **Arquivos modificados:** `almotos-front/package.json`; `almotos-front/src/lib/documents.ts`; `almotos-front/src/components/documents/`; `almotos-front/src/app/documentos/page.tsx`; `almotos-front/src/components/layout/app-sidebar.tsx`; `almotos-front/src/app/{vendas,motos/[placa]}/page.tsx`; `docs/ai/CHANGELOG.md`
