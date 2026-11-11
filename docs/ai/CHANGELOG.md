@@ -2,6 +2,58 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-11 — NF-e no painel (Meta 2: P1–P3) e QA local de um comando (P6)
+
+- **Arquivos modificados:**
+  - Backend:
+    - Migrações: `almotos-backend/alembic/versions/{013_vehicle_fiscal_ids,014_partner_fiscal_address,015_fiscal_documents}.py`.
+    - Modelos e schemas: `almotos-backend/src/almotos_backend/{models/{fiscal,vehicle,partner,commerce,__init__},schemas/{vehicle,partner,commerce}}.py`.
+    - Serviços fiscais: `almotos-backend/src/almotos_backend/services/fiscal/{documents,divergence,mock_forecast,cfop_rules}.py`.
+    - Demais serviços: `almotos-backend/src/almotos_backend/services/{sales,purchases,exchanges,vehicles,partners}.py`.
+    - Rotas, segurança e configuração: `almotos-backend/src/almotos_backend/{routers/{fiscal,__init__},main,config,security/middleware}.py`.
+    - Seed de QA: `almotos-backend/src/almotos_backend/qa_seed.py`.
+    - Testes: `almotos-backend/tests/{conftest,test_fiscal_flow}.py`.
+    - Arquivos de suporte: `almotos-backend/{.env.qa.example,docker-compose.qa.yml,.gitignore}`.
+  - Front:
+    - Componentes fiscais: `almotos-front/src/components/fiscal/*`.
+    - Página nova: `almotos-front/src/app/notas-fiscais/page.tsx`.
+    - Páginas alteradas: `almotos-front/src/app/{vendas,compras,trocas,motos/[placa],contatos,contatos/[id]}/page.tsx`.
+    - Formulários e documentos: `almotos-front/src/components/{forms/{form-veiculo,form-parceiro,form-venda,form-troca},documents/documentos-workspace,layout/app-sidebar}.tsx`.
+    - Bibliotecas, tipos e proxy: `almotos-front/src/{lib/{api,fiscal,roles,validations/schemas}.ts,types/index.ts,app/api/proxy/[...path]/route.ts}`.
+    - Configuração: `almotos-front/{next.config.ts,.gitignore}`.
+  - Raiz: `scripts/qa.ps1`, `README.md`, `.gitignore`, `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **Dados que a NF-e exige:**
+    - A moto ganha chassi (único), RENAVAM com dígito verificador, cilindrada, combustível e NCM manual opcional.
+    - O endereço ganha bairro, complemento e código IBGE, preenchidos pelo CEP.
+    - O contato ganha e-mail e IE.
+    - A venda e a troca ganham a forma de pagamento (tPag).
+    - Tudo é opcional no cadastro: a nota é que aponta o que falta. Os campos novos só são gravados quando vêm no corpo, então clientes antigos (como o MCP) não apagam dados ao editar.
+  - **`fiscal_documents` é um retrato imutável:**
+    - Guarda payload, status, chave, XML e DANFE.
+    - As FKs são RESTRICT, então a moto e o contato não podem ser apagados enquanto houver nota.
+    - O ambiente fica gravado na nota. Nota de outro ambiente não conta nas regras e não pode ser cancelada com o token atual.
+  - **Emissão separada da operação da loja:**
+    - Emitir é uma rota própria, com prévia e `confirm` obrigatório.
+    - A nota é gravada e commitada antes de ir à ForeCast; a `ref` idempotente cobre queda de rede.
+    - Cancelar uma venda, compra ou troca só abre uma divergência (`PENDING`). Nada vai à SEFAZ.
+    - A decisão é manual: cancelar em até 24 h (com justificativa e o número da nota digitado), emitir devolução (CFOP 1202/5202, bloqueada até o contador confirmar) ou manter com motivo. Tudo fica no histórico da operação.
+    - O mesmo chassi não sai duas vezes: uma nova saída exige que a última nota viva dele seja de entrada.
+    - O webhook só serve de aviso para reconsultar a nota; o corpo recebido não é usado.
+  - **Travas de boot:**
+    - `PRODUCAO` exige o token de produção, diferente do de homologação.
+    - `MOCK` é recusado no Railway.
+  - **Painel:**
+    - Coluna "NF-e" e painel lateral em vendas, compras e trocas.
+    - Página "Notas Fiscais", com as abas Emitidas, Divergências e Configuração.
+    - Faixa de ambiente fixa em homologação e no QA.
+    - Linha do tempo fiscal na ficha da moto.
+    - O proxy passa a repassar bytes crus, para não corromper o PDF.
+  - **QA local (`scripts/qa.ps1`):**
+    - Sobe o SoR na porta 8090 e o painel na 3010, com um `.env.qa` próprio (sem token), a ForeCast simulada (`FORECAST_AMBIENTE=MOCK`, que nunca abre rede) e um seed que passa pelos serviços reais.
+    - Os testes deixam de ler o `.env` de desenvolvimento, o que corrige os 2 falsos negativos que existiam.
+  - **Fora desta etapa:** a NF-e de entrada de consignação no cadastro da moto e a escrita no RENAVE (P4).
+
 ## 2026-11-11 — NF-e via ForeCast Fiscal: cliente, builder e script de homologação
 
 - **Arquivos modificados:** `almotos-backend/src/almotos_backend/{config.py,utils/documents.py}`; `almotos-backend/src/almotos_backend/services/fiscal/{__init__,forecast_client,cfop_rules,nfe_payload}.py`; `almotos-backend/src/almotos_backend/scripts/{__init__,homologacao_nfe}.py`; `almotos-backend/tests/{test_nfe_payload,test_forecast_client}.py`; `almotos-backend/{.env.example,.gitignore}`; `docs/ai/CHANGELOG.md`

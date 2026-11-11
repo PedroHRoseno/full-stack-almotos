@@ -68,6 +68,29 @@ Trabalho do dia a dia: commit **dentro** do submodule; no pai, commit só o pont
 - Python 3.12+ (bot)
 - `OPENAI_API_KEY` **somente** no `almotos-ai`
 
+## Rodar o QA local (backend + painel com dados de teste)
+
+Um comando sobe o SoR e o painel com dados fictícios que cobrem todos os casos da nota fiscal
+(venda pronta para emitir, nota autorizada, processando, rejeitada, divergências, troca,
+consignação bloqueada, cadastro incompleto, venda interestadual, moto elétrica sem placa).
+
+```powershell
+./scripts/qa.ps1 up       # sobe tudo (cria o banco de QA na 1ª vez)
+./scripts/qa.ps1 reset    # recria o banco de QA do zero e sobe
+./scripts/qa.ps1 down     # para tudo
+./scripts/qa.ps1 status   # o que está rodando
+./scripts/qa.ps1 logs     # últimas linhas dos logs
+```
+
+- Painel em http://localhost:3010, API em http://localhost:8090/docs.
+- Login: `admin` / `admin123` (admin) ou `vendedor` / `vendedor123` (operador).
+- A ForeCast é **simulada** (`FORECAST_AMBIENTE=MOCK`): nenhuma nota sai da máquina.
+- O backend do QA lê só `almotos-backend/.env.qa` (criado a partir do `.env.qa.example`, sem token).
+  O `.env` de desenvolvimento nunca é usado.
+- Portas e pasta de build próprias (`.next-qa`): roda ao lado do `npm run dev` normal.
+- `-Postgres` usa um Postgres só do QA (Docker, porta 5433) e testa as migrações fiscais
+  (downgrade + upgrade) em vez de SQLite: `./scripts/qa.ps1 reset -Postgres`.
+
 ## Rodar localmente
 
 Ordem: Postgres → SoR FastAPI → `almotos-ai` → painel / catálogo / bot.

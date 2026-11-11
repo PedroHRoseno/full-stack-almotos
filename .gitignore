@@ -26,3 +26,6 @@ backups/
 *.backup
 *.sql.gz
 *.pgdump
+
+# QA local (scripts/qa.ps1): PIDs e logs
+.qa/
