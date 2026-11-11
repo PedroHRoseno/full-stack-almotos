@@ -2,6 +2,23 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-11 — Painel lateral de formulários, busca de contatos no servidor e nova Consulta FIPE
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/src/almotos_backend/{routers,services}/fipe.py`, `almotos-backend/tests/test_fipe.py`.
+  - Front:
+    - Novos: `almotos-front/src/components/{layout/form-dock,forms/contact-picker}.tsx`.
+    - Layout: `almotos-front/src/app/{layout.tsx,globals.css}`, `almotos-front/src/components/layout/{LayoutWrapper,main-content}.tsx`.
+    - Páginas: `almotos-front/src/app/{consulta-fipe,motos,motos/[placa],vendas,compras,trocas,contatos,contatos/[id],notas-fiscais,relatorios}/page.tsx`.
+    - Formulários e UI: `almotos-front/src/components/{forms/{form-veiculo,form-venda,form-compra,form-troca},fiscal/fiscal-sheet,ui/searchable-select}.tsx`, `almotos-front/src/lib/api.ts`.
+  - Raiz: `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **Contatos sumindo nos selects:** cada formulário baixava só os 100–200 primeiros contatos em ordem alfabética e filtrava no navegador; quem vinha depois (ex.: "Pedro") não aparecia. O `ContactPicker` carrega 30 ao abrir e busca no servidor por nome, CPF ou CNPJ; um valor fora da página é resolvido por id.
+  - **Painel lateral (`FormDock`):** formulários longos abrem à direita, empurram a página e vivem no layout raiz, então dá para navegar sem perder o que foi digitado. Abas para vários forms, largura ajustável, recolher num trilho, confirmação ao descartar; no celular cobre a tela e minimiza numa pílula. `DockedForm` mantém a API declarativa do antigo `<Sheet>`.
+  - **Consulta FIPE:** chips de marca, busca instantânea por palavras sobre todos os modelos da marca, valor por ano com barra e variação, consultas recentes e "Cadastrar com este modelo" (pré-preenche o form no painel).
+  - **Backend FIPE:** `/fipe/models` casa cada palavra e aceita `limit` (até 1000); `/fipe/consulta` aceita `yearCode`, o que corrige o ano Zero KM (`32000-x`), antes recusado com 422.
+  - **Observação:** o projeto não tem o plugin de container queries do Tailwind; as classes `@lg:` do form de veículo continuam sem efeito.
+
 ## 2026-11-11 — NF-e no painel (Meta 2: P1–P3) e QA local de um comando (P6)
 
 - **Arquivos modificados:**
