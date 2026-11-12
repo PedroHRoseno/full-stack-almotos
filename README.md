@@ -43,8 +43,9 @@ Guardrails: [`docs/ai/CLAUDE.md`](./docs/ai/CLAUDE.md).
 | [`almotos-catalog`](./almotos-catalog) | Vitrine + assistente (Generative UI) | Next.js 14, React 18 | `3001` | Vercel |
 | [`almotos-ai`](./almotos-ai) | MCP Server + `/v1/chat` | Node 20, TypeScript, Express, Zod | `3100` | Railway |
 | [`almotos-ai-bot`](./almotos-ai-bot) | Adapter WhatsApp (Meta Cloud API) | FastAPI, Python 3.12 | `8000` | Railway |
+| [`almotos-mobile`](./almotos-mobile) | App de pátio (fala direto com o SoR) | Expo SDK 53, React Native | — | APK na Release do repo (GitHub Actions) |
 
-Remotes em `https://github.com/PedroHRoseno/`: `almotos-backend`, `almotos-front`, `almotos-catalog`, `almotos-ai`, `almotos-ai-bot`.
+Remotes em `https://github.com/PedroHRoseno/`: `almotos-backend`, `almotos-front`, `almotos-catalog`, `almotos-ai`, `almotos-ai-bot`, `almotos-mobile` (privado).
 
 ## Clonar
 
@@ -179,11 +180,12 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 | Serviço | Obrigatórias (local) |
 |---------|----------------------|
-| `almotos-backend` | `DB_*`, `JWT_*`; Postgres via `docker compose` na mesma pasta |
+| `almotos-backend` | `DB_*`, `JWT_*`; Postgres via `docker compose` na mesma pasta; opcional `SIMPLES_API_TOKEN` (consulta por placa) |
 | `almotos-ai` | `KOTLIN_BASE_URL` (aponta para o SoR), `OPENAI_API_KEY`, `SELLER_*_PHONE` |
 | Catálogo | `ALMOTOS_AI_URL`; `NEXT_PUBLIC_WHATSAPP_URL`; `NEXT_PUBLIC_SITE_URL` |
 | Admin | `NEXT_PUBLIC_API_URL` (SoR FastAPI) |
 | Bot | `ALMOTOS_AI_URL`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` |
+| Mobile | `EXPO_PUBLIC_API_URL` (padrão: produção); secrets `ANDROID_KEYSTORE_*` no repo para assinar o APK |
 
 `OPENAI_API_KEY` não vai para Vercel do catálogo. Redis no `almotos-ai` (`REDIS_URL`) é só memória de thread WhatsApp, não espelho de estoque.
 

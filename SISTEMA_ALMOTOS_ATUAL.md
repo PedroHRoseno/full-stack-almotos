@@ -48,6 +48,7 @@ O sistema é o **ERP + vitrine + pré-vendas por IA** da loja. Ele cobre:
 - Cancelar venda devolve a moto ao estoque e **estorna** lançamentos de caixa ligados (`source_sale_id`).
 - Relatórios: dashboard, financeiro por período, por contato (dono/repasse/comprador/fornecedor).
 - Consulta FIPE (Brasil API) no cadastro e em tela avulsa.
+- Consulta por placa (Simples API) em `/consulta-placa` e no botão "Buscar pela placa" do form de moto: preenche marca, modelo, anos, cor (hex), combustível e cilindrada e sugere o modelo FIPE. O saldo pré-pago fica sempre visível, com alertas LOW/EMPTY, e sem saldo o cadastro segue manual.
 - Gestão de usuários internos (ADMIN).
 - Tema claro/escuro; identidade vermelha `#eb0b0b`.
 
@@ -57,6 +58,12 @@ O sistema é o **ERP + vitrine + pré-vendas por IA** da loja. Ele cobre:
 - Rewrite: `catalogo.almotoscaruaru.com.br/` → `/estoque`.
 - Ficha `/motos/[slug]`, sitemap, JSON-LD, `/privacidade`.
 - Widget de chat com Generative UI (cards, fotos, handoff).
+
+**App de pátio (`almotos-mobile`, APK Android)**
+
+- Expo SDK 53 + Expo Router; login JWT no `expo-secure-store`; fala direto com a REST do SoR (não passa pelo MCP).
+- Placa + saldo, estoque, vitrine, fotos com recorte nativo 4:3 e upload em lote, compra/venda/troca, contatos (ViaCEP), custos, caixa, leads (WhatsApp), recibo/contrato em PDF.
+- APK assinado gerado no GitHub Actions do próprio repo (`release-apk.yml`) e anexado à Release.
 
 **WhatsApp (caminho de produção)**
 
@@ -149,7 +156,8 @@ O volume local do Compose **não cria tabelas**. Precisa de dump de produção (
 | **PostgreSQL** | `almotos-backend` | Persistência única |
 | **AWS S3** | `almotos-backend` | Upload de fotos (máx. 10 MB); URL pública regional |
 | **Brasil API (FIPE)** | `almotos-backend` | Proxy autenticado, tipo `motos`, timeout 2,5 s, cache in-memory 6 h; falha não bloqueia cadastro |
-| **ViaCEP** | `almotos-front` (browser) | Autocomplete de endereço no contato |
+| **Simples API (placa)** | `almotos-backend` | `POST /v1/vehicle/plate` (R$ 0,10 por consulta, cobrada também no 404) e `GET /v1/billing/balance` (grátis). Token `SIMPLES_API_TOKEN` só no SoR; cache por placa de 24 h; timeout 8 s; erro e saldo zero viram `outcome`, sem bloquear o cadastro. Rotas `POST /plates/lookup`, `GET /plates/balance` (ADMIN/USER) |
+| **ViaCEP** | `almotos-front` (browser), `almotos-mobile` | Autocomplete de endereço no contato |
 | **OpenAI** | **somente** `almotos-ai` | `gpt-4o-mini` (default via `OPENAI_MODEL`); tool calling (Vercel AI SDK) |
 | **Chatwoot** | `almotos-ai-bot` | Caixa omnichannel; AgentBot webhook + REST (mensagens, anexos, `toggle_status`) |
 | **Meta Cloud API** | Via Chatwoot (prod); rota direta `/webhook` no bot é **legado** | Entrega WhatsApp |
@@ -295,7 +303,20 @@ almotos-ai-bot/app/
 
 Porta **8000**. Sem Postgres/Redis neste processo (ADR-001).
 
-### 3.6 CI/CD do pai
+### 3.6 `almotos-mobile` — App de pátio
+
+```
+almotos-mobile/
+├── app/                       # Expo Router: (tabs) placa/estoque/operações/mais, veiculo/[ref]/*, operacoes/*, contatos/*, leads
+├── src/contracts/             # cópia dos tipos e helpers puros do almotos-front (sem pacote comum: Vercel isolada)
+├── src/lib/                   # api (JWT), photos (crop 4:3 + JPEG 80%), pdf (expo-print), share (WhatsApp)
+├── plugins/with-release-signing.js
+└── .github/workflows/         # ci.yml + release-apk.yml (prebuild + gradlew assembleRelease)
+```
+
+Repositório privado. Sem servidor próprio, sem banco (ADR-001).
+
+### 3.7 CI/CD do pai
 
 Ordem de CD em `main`/`master`: **SoR → almotos-ai → (front ∥ catalog ∥ bot)**.
 

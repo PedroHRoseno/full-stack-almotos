@@ -6,6 +6,7 @@
 #   almotos-front                    Next.js 15            → Vercel   (admin)
 #   almotos-catalog                  Next.js 14            → Vercel   (vitrine)
 #   almotos-ai-bot                   FastAPI / Python 3.12 → Railway  (WhatsApp)
+#   almotos-mobile                   Expo / React Native   → APK na Release do próprio repo (só CI aqui)
 #
 # Ordem de CD (dependências de runtime):
 #   FastAPI SoR → almotos-ai (MCP) → [front | catalog | bot] em paralelo
@@ -44,6 +45,8 @@ on:
       - "almotos-ai/**"
       - "almotos-ai-bot"
       - "almotos-ai-bot/**"
+      - "almotos-mobile"
+      - "almotos-mobile/**"
       - ".github/workflows/ci-cd.yml"
   pull_request:
     branches: [main, master]
@@ -58,6 +61,8 @@ on:
       - "almotos-ai/**"
       - "almotos-ai-bot"
       - "almotos-ai-bot/**"
+      - "almotos-mobile"
+      - "almotos-mobile/**"
       - ".github/workflows/ci-cd.yml"
   workflow_dispatch:
     inputs:
@@ -90,6 +95,7 @@ jobs:
       catalog: ${{ steps.eval.outputs.catalog }}
       ai: ${{ steps.eval.outputs.ai }}
       bot: ${{ steps.eval.outputs.bot }}
+      mobile: ${{ steps.eval.outputs.mobile }}
       workflow: ${{ steps.eval.outputs.workflow }}
     steps:
       - name: Checkout (histórico para diff; sem submodules)
@@ -119,6 +125,9 @@ jobs:
             bot:
               - "almotos-ai-bot"
               - "almotos-ai-bot/**"
+            mobile:
+              - "almotos-mobile"
+              - "almotos-mobile/**"
             workflow:
               - ".github/workflows/ci-cd.yml"
 
@@ -131,6 +140,7 @@ jobs:
           F_CATALOG: ${{ steps.filter.outputs.catalog }}
           F_AI: ${{ steps.filter.outputs.ai }}
           F_BOT: ${{ steps.filter.outputs.bot }}
+          F_MOBILE: ${{ steps.filter.outputs.mobile }}
           F_WF: ${{ steps.filter.outputs.workflow }}
         run: |
           set -euo pipefail
@@ -140,6 +150,7 @@ jobs:
             echo "catalog=true"  >> "$GITHUB_OUTPUT"
             echo "ai=true"       >> "$GITHUB_OUTPUT"
             echo "bot=true"      >> "$GITHUB_OUTPUT"
+            echo "mobile=true"   >> "$GITHUB_OUTPUT"
             echo "workflow=true" >> "$GITHUB_OUTPUT"
           else
             echo "backend=${F_BACKEND:-false}"   >> "$GITHUB_OUTPUT"
@@ -147,6 +158,7 @@ jobs:
             echo "catalog=${F_CATALOG:-false}" >> "$GITHUB_OUTPUT"
             echo "ai=${F_AI:-false}"           >> "$GITHUB_OUTPUT"
             echo "bot=${F_BOT:-false}"           >> "$GITHUB_OUTPUT"
+            echo "mobile=${F_MOBILE:-false}"     >> "$GITHUB_OUTPUT"
             echo "workflow=${F_WF:-false}"       >> "$GITHUB_OUTPUT"
           fi
 
@@ -377,10 +389,70 @@ jobs:
       - name: Testes
         run: uv run pytest
 
+  ci-mobile:
+    name: CI · almotos-mobile (Expo)
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true' || needs.changes.outputs.workflow == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUBMODULE_PATH: almotos-mobile
+    defaults:
+      run:
+        working-directory: almotos-mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      # almotos-mobile é privado: se o GH_PAT não alcança o repo, avisa e
+      # pula (o mesmo CI roda no próprio repo, junto com o build do APK).
+      - name: Init submodule
+        id: init
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          set -uo pipefail
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          if git submodule update --init --depth=1 "$SUBMODULE_PATH"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Sem acesso ao submódulo privado almotos-mobile (inclua o repo no GH_PAT). CI do app roda em PedroHRoseno/almotos-mobile."
+          fi
+          git config --global --unset-all "url.https://x-access-token:${GH_TOKEN}@github.com/.insteadOf" || true
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        if: steps.init.outputs.available == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: almotos-mobile/package-lock.json
+
+      - name: Instalar dependências
+        if: steps.init.outputs.available == 'true'
+        run: npm ci
+
+      - name: Typecheck
+        if: steps.init.outputs.available == 'true'
+        run: npx tsc --noEmit
+
+      - name: Lint
+        if: steps.init.outputs.available == 'true'
+        run: npm run lint
+
+      - name: Testes
+        if: steps.init.outputs.available == 'true'
+        run: npx jest --ci
+
   # Gate único para branch protection (jobs skipped não bloqueiam o PR).
   ci-gate:
     name: CI · gate
-    needs: [changes, ci-backend, ci-front, ci-catalog, ci-ai, ci-bot]
+    needs: [changes, ci-backend, ci-front, ci-catalog, ci-ai, ci-bot, ci-mobile]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -392,13 +464,14 @@ jobs:
           CATALOG: ${{ needs.ci-catalog.result }}
           AI: ${{ needs.ci-ai.result }}
           BOT: ${{ needs.ci-bot.result }}
+          MOBILE: ${{ needs.ci-mobile.result }}
         run: |
           set -euo pipefail
           if [ "$CHANGES" != "success" ]; then
             echo "Job 'changes' falhou: $CHANGES"
             exit 1
           fi
-          for name_and_result in "ci-backend:$BACKEND" "ci-front:$FRONT" "ci-catalog:$CATALOG" "ci-ai:$AI" "ci-bot:$BOT"; do
+          for name_and_result in "ci-backend:$BACKEND" "ci-front:$FRONT" "ci-catalog:$CATALOG" "ci-ai:$AI" "ci-bot:$BOT" "ci-mobile:$MOBILE"; do
             result="${name_and_result##*:}"
             name="${name_and_result%%:*}"
             case "$result" in

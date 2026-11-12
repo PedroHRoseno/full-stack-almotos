@@ -14,3 +14,7 @@
 	path = almotos-backend
 	url = https://github.com/PedroHRoseno/almotos-backend.git
 	branch = master
+[submodule "almotos-mobile"]
+	path = almotos-mobile
+	url = https://github.com/PedroHRoseno/almotos-mobile.git
+	branch = main

@@ -2,6 +2,20 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-12 — `almotos-mobile`: app nativo de pátio (Expo) com APK no GitHub Actions
+
+- **Arquivos modificados:**
+  - Novo submódulo privado `almotos-mobile/**` (`app/`, `src/{contracts,lib,auth,theme,components}`, `plugins/with-release-signing.js`, `.github/workflows/{ci,release-apk}.yml`, `__tests__/`).
+  - Raiz: `.gitmodules`, `.github/workflows/ci-cd.yml` (job `ci-mobile` + gate), `README.md`, `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`.
+- **Por que:** o que se faz melhor no celular, no pátio: placa com saldo, fotos com recorte nativo 4:3, vitrine, compra/venda/troca, contatos, custos, caixa, leads e recibo/contrato em PDF pelo WhatsApp. O app é cliente admin como o `almotos-front`: fala direto com a REST do SoR com JWT, sem MCP e sem banco (ADR-001/ADR-003). Os tipos e helpers puros foram **copiados** para `src/contracts/` em vez de virar um pacote comum, porque o front faz deploy isolado na Vercel. O APK é assinado no runner (prebuild + Gradle, sem EAS), com o keystore nos secrets do repo, e anexado à Release em tags `v*.*.*`. O `ci-mobile` da raiz pula com aviso quando o `GH_PAT` não alcança o repo privado.
+
+## 2026-11-12 — Consulta por placa (Simples API) em paralelo à FIPE (Brasil API)
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/src/almotos_backend/{config.py,main.py,routers/__init__.py,routers/plates.py,schemas/plates.py,services/simples_api.py,services/plate_normalize.py,services/fipe.py}`, `almotos-backend/.env.example`, `almotos-backend/tests/{conftest.py,test_simples_api.py,test_plate_normalize.py}`.
+  - Front: `almotos-front/src/{lib/api.ts,lib/plate-balance-store.ts,lib/plate-prefill.ts,lib/roles.ts,types/index.ts}`, `almotos-front/src/components/plates/{plate-balance-badge,plate-lookup-button,plate-lookup-card}.tsx`, `almotos-front/src/components/forms/{form-veiculo,form-compra,form-troca}.tsx`, `almotos-front/src/components/layout/app-sidebar.tsx`, `almotos-front/src/app/consulta-placa/page.tsx`.
+- **Por que:** arquitetura híbrida. A Simples API identifica a moto pela placa (marca, modelo + versão, anos, cor em hex, combustível, cilindrada, município) e informa o saldo pré-pago. A Brasil API **continua** como fonte do valor FIPE: `fipe_value`/`codigo_fipe` e os selos do painel, catálogo e `almotos-ai` não mudam. A placa sugere o modelo FIPE (`suggest_models`, que tira palavras do fim até achar) e escolhe sozinha quando não há ambiguidade. O token fica só no SoR. A placa é sanitizada (sem hífen) antes da chamada externa. O cache por placa de 24 h evita pagar duas vezes (inclusive o 404, que é cobrado). Toda falha (402, 422, 429, 503, timeout, token ausente ou recusado) vira `outcome` num 200, e o form segue manual. O saldo vem de `GET /v1/billing/balance` (formato confirmado ao vivo: `balance_cents` + `low_balance_threshold_cents`, que vira o limite de "saldo baixo" se `SIMPLES_API_LOW_BALANCE_CENTS` não estiver definido) e de `details.balance_cents` no 402. Novo contrato: `POST /plates/lookup`, `GET /plates/balance` (ADMIN/USER). A placa continua opcional (elétricas).
+
 ## 2026-11-11 — Painel lateral de formulários, busca de contatos no servidor e nova Consulta FIPE
 
 - **Arquivos modificados:**
