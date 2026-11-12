@@ -2,6 +2,32 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-12 — Consulta Veículo (placa + FIPE), OCR de placa e redesign do `almotos-mobile` v0.2.0
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/src/almotos_backend/{services/fipe.py,services/simples_api.py,routers/fipe.py,routers/plates.py,schemas/plates.py,schemas/vehicle.py}`, `almotos-backend/tests/{test_fipe,test_simples_api,test_http_contract}.py`.
+  - Front: `almotos-front/src/{types/index.ts,lib/api.ts,app/consulta-placa/page.tsx}`, `almotos-front/src/components/plates/{plate-lookup-card,plate-lookup-button}.tsx`.
+  - Mobile:
+    - Telas: `almotos-mobile/app/{_layout.tsx,(tabs)/{_layout,index,estoque,operacoes,mais}.tsx,veiculo/[ref]/{index,fotos,custos,vitrine}.tsx}`.
+    - Componentes novos: `almotos-mobile/src/components/{ui/kit,consulta/{shared,plate-mode,fipe-mode},vehicle-card,vehicle-picker-sheet}.tsx`.
+    - Alterados: `almotos-mobile/src/{components/ui/index.tsx,components/plates/index.tsx,theme/{tokens.ts,index.tsx},lib/api.ts,contracts/types.ts}`.
+    - Projeto: `almotos-mobile/{app.json,package.json,package-lock.json,assets/{icon,adaptive-icon,splash-icon}.png}`.
+  - Raiz: `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **FIPE da placa de carro:** a ponte placa → FIPE só consultava a tabela `motos`, então um Civic (KIU-1437, `AUTOMOVEL`) nunca casava. O `vehicle_type` do Detran agora escolhe a tabela (`kind_from_detran`: AUTOMOVEL/CAMIONETA → `carros`, MOTOCICLETA/MOTONETA/CICLOMOTOR → `motos`, CAMINHAO/ONIBUS → `caminhoes`; desconhecido continua `motos`). As rotas `/fipe/*` aceitam `tipo` (padrão `motos`, sem quebrar clientes antigos). A marca casa com nomes compostos da FIPE de carros ("VW - VolksWagen", "GM - Chevrolet") e sem acento.
+  - **Match mais certeiro:** `suggest_models` ordena os candidatos por semelhança (palavra inteira vale mais que pedaço, para "EX" não empatar com "EXL"; cilindrada e combustível desempatam) e, quando sabe o ano-modelo, põe na frente quem tem aquele ano na FIPE. `auto_select` continua só para casos sem ambiguidade; o novo `selected` é o melhor palpite.
+  - **Preço e outros anos na mesma resposta:** `PlateLookupResponse.fipe` ganhou `vehicle_kind`, `selected`, `model_year`, `price` (valor do ano-modelo da placa, com código FIPE e mês de referência) e `years` (valor de cada ano do modelo, buscados em paralelo e com cache). Novo `GET /fipe/precos` devolve a mesma lista numa chamada, que o app usa na Consulta FIPE e quando a pessoa troca o modelo. O valor continua vindo só da Brasil API.
+  - **OCR de placa:** `POST /plates/ocr` (ADMIN/USER) manda a foto em base64 para `POST /v1/ocr/plate` da Simples API com `include_vehicle_info=false` (R$ 0,05). Com confiança de pelo menos 0,90 segue pelo `lookup_plate` normal, o que reaproveita o cache de 24 h por placa e não paga duas vezes a mesma consulta; abaixo disso devolve `OCR_LOW_CONFIDENCE` com a placa lida para a pessoa conferir, em vez de gastar R$ 0,10 numa placa talvez errada. Sem placa na foto vira `OCR_NO_PLATE`. Saldo, 429 e token recusado usam o mesmo tratamento do lookup. A resposta ganhou `ocr` (placa, confiança, tipo, método).
+  - **Sem aviso de "não é moto":** o banner/toast "esta placa é de um AUTOMOVEL" saiu do backend, do painel e do app. O `Tipo` na grade já informa.
+  - **App v0.2.0:**
+    - Barras do sistema escuras, e a tab bar soma `insets.bottom` (botões e abas não ficam mais atrás da barra de 3 botões do Android em edge-to-edge).
+    - Tema sempre escuro, com os tons zinc do painel.
+    - Ícones Lucide no lugar dos emojis.
+    - A aba "Consulta" junta Por Placa (com câmera/OCR) e Pela FIPE (mesmo fluxo da Consulta FIPE do painel).
+    - Estoque com filtros e cards 4:3.
+    - Operações e Mais viraram action rows. "Lançar custo" abre a escolha da moto num bottom sheet e vai direto para os custos dela.
+  - **Ícone do app:** os três PNGs foram gerados a partir de `almotos-front/public/logo.png` sem esticar, com 24% de margem. O logo cabe no círculo de 66/108 do adaptive icon, então "AL MOTOS" não é mais cortado.
+
 ## 2026-11-12 — `almotos-mobile` v0.1.1: corrige crash na abertura do APK
 
 - **Arquivos modificados:** `almotos-mobile/{package.json,package-lock.json,app.json,.github/workflows/smoke-apk.yml}`, `docs/ai/CHANGELOG.md`.

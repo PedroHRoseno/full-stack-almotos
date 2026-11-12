@@ -156,7 +156,7 @@ O volume local do Compose **não cria tabelas**. Precisa de dump de produção (
 | **PostgreSQL** | `almotos-backend` | Persistência única |
 | **AWS S3** | `almotos-backend` | Upload de fotos (máx. 10 MB); URL pública regional |
 | **Brasil API (FIPE)** | `almotos-backend` | Proxy autenticado, tipo `motos`, timeout 2,5 s, cache in-memory 6 h; falha não bloqueia cadastro |
-| **Simples API (placa)** | `almotos-backend` | `POST /v1/vehicle/plate` (R$ 0,10 por consulta, cobrada também no 404) e `GET /v1/billing/balance` (grátis). Token `SIMPLES_API_TOKEN` só no SoR; cache por placa de 24 h; timeout 8 s; erro e saldo zero viram `outcome`, sem bloquear o cadastro. Rotas `POST /plates/lookup`, `GET /plates/balance` (ADMIN/USER) |
+| **Simples API (placa)** | `almotos-backend` | `POST /v1/vehicle/plate` (R$ 0,10 por consulta, cobrada também no 404) e `GET /v1/billing/balance` (grátis). Token `SIMPLES_API_TOKEN` só no SoR; cache por placa de 24 h; timeout 8 s; erro e saldo zero viram `outcome`, sem bloquear o cadastro. Também `POST /v1/ocr/plate` (R$ 0,05 por leitura; só lê, a consulta segue pelo `/v1/vehicle/plate` com o cache). Rotas `POST /plates/lookup`, `POST /plates/ocr`, `GET /plates/balance` (ADMIN/USER) |
 | **ViaCEP** | `almotos-front` (browser), `almotos-mobile` | Autocomplete de endereço no contato |
 | **OpenAI** | **somente** `almotos-ai` | `gpt-4o-mini` (default via `OPENAI_MODEL`); tool calling (Vercel AI SDK) |
 | **Chatwoot** | `almotos-ai-bot` | Caixa omnichannel; AgentBot webhook + REST (mensagens, anexos, `toggle_status`) |
@@ -527,10 +527,13 @@ Busca `q`: tokens ILIKE (`honda` AND `start`), não substring contínua.
 
 | Método | Path |
 |--------|------|
-| GET | `/fipe/models?brand&q` |
-| GET | `/fipe/codigo?brand&codigoModelo&year` |
-| GET | `/fipe/anos?brand&codigoModelo` |
-| GET | `/fipe/consulta?brand&codigoModelo&year` |
+| GET | `/fipe/models?brand&q&tipo` |
+| GET | `/fipe/codigo?brand&codigoModelo&year&tipo` |
+| GET | `/fipe/anos?brand&codigoModelo&tipo` |
+| GET | `/fipe/precos?brand&codigoModelo&tipo` (valor de cada ano numa chamada) |
+| GET | `/fipe/consulta?brand&codigoModelo&year\|yearCode&tipo` |
+
+`tipo` = `motos` (padrão), `carros` ou `caminhoes`.
 | GET | `/tags?visibility&q` |
 
 Não há CRUD HTTP isolado de tags: upsert ocorre no create/update do veículo.
