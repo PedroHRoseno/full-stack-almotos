@@ -2,6 +2,11 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-12 — `almotos-mobile` v0.1.1: corrige crash na abertura do APK
+
+- **Arquivos modificados:** `almotos-mobile/{package.json,package-lock.json,app.json,.github/workflows/smoke-apk.yml}`, `docs/ai/CHANGELOG.md`.
+- **Por que:** o APK v0.1.0 fechava ao abrir com `Cannot find native module 'ExpoAsset'`. O `expo-asset`, o `expo-font` e o `expo-keep-awake` ficaram aninhados em `expo/node_modules`, onde o autolinking não procura, então os módulos nativos não entraram no build. Eles agora são dependências diretas. O novo workflow `smoke-apk.yml` (em PR e manual) compila um release x86_64, abre o app num emulador e guarda o logcat e um print da tela, para pegar esse tipo de crash antes de criar a tag.
+
 ## 2026-11-12 — `almotos-mobile`: app nativo de pátio (Expo) com APK no GitHub Actions
 
 - **Arquivos modificados:**
