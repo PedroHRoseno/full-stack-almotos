@@ -463,6 +463,10 @@ Lançamentos da loja: `description`, `value`, `date`, `type` (ENTRY/EXIT), `cate
 
 `DELETE /store-transactions/{id}` **cancela** (não apaga fisicamente).
 
+#### `receivable_accounts` / `receivable_installments`
+
+Contas a receber (crediário / promissórias), migração `016_receivables`. A conta (UUID) liga `partner_id` (obrigatório), `vehicle_id` e `sale_id` (opcionais), `description`, `total_amount`, `installments_count` e `status` (ACTIVE/SETTLED/CANCELLED). Cada parcela tem `installment_number`, `amount`, `due_date`, `paid_date`, `status` (PENDING/PAID/CANCELLED) e `store_transaction_id` (BIGINT). Não existe conta bancária: dar baixa cria uma ENTRY `RECEBIMENTO_CREDIARIO` em `store_transactions`; estornar cancela esse lançamento.
+
 #### `transaction_history`
 
 Auditoria: `transaction_type`, `transaction_id`, `action_type`, `action_date`, `description`, `old_value`, `new_value`, `performed_by`. **Não há endpoint de leitura**; o histórico operacional da moto agrega compras/vendas/trocas/custos em `/vehicles/{placa}/history`.
@@ -547,6 +551,7 @@ Não há CRUD HTTP isolado de tags: upsert ocorre no create/update do veículo.
 | `/sales` | GET, POST, PUT `{id}`, POST `{id}/cancel`, DELETE `{id}` (= cancel) |
 | `/exchanges` | GET, POST, PUT `{id}`, POST `{id}/cancel`, DELETE `{id}?deleteIncomingVehicle=` |
 | `/store-transactions` | GET, POST, PUT `{id}`, POST `{id}/cancel`, DELETE `{id}` (= cancel) |
+| `/receivables` | GET (`search`, `status`=OPEN/OVERDUE/DUE_SOON/SETTLED/CANCELLED/ALL), GET `summary`, POST, GET `{id}`, DELETE `{id}` (= cancela pendentes), POST `installments/{id}/pay` e `/unpay` |
 | `/financial/movements` | GET unificado (venda/compra/troca/custo/loja); paginação **em memória** |
 | `/reports/dashboard` | KPIs globais |
 | `/reports/financial` | `startDate`, `endDate` (default 30 dias) |
@@ -595,6 +600,8 @@ Resource MCP: `inventory://available`.
 | `/consulta-fipe` | consulta avulsa |
 | `/compras`, `/vendas`, `/trocas` | comércio |
 | `/fluxo-caixa` | movimentações + lançamentos |
+| `/receber` | contas a receber: KPIs, filtros, linha expansível com parcelas, baixa e estorno |
+| `/documentos` | contrato, recibo, consignação, nota promissória e carnê (`?type=carne&receivableId=`) |
 | `/relatorios` | financeiro + por contato |
 | `/guia` | documentação in-app |
 | `/configuracoes` | senha; ADMIN gerencia usuários |

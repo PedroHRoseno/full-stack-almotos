@@ -2,6 +2,31 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-13 — Contas a Receber (crediário / promissórias) com baixa no caixa, carnê e nota promissória
+
+- **Arquivos modificados:**
+  - Backend:
+    - Migração: `almotos-backend/alembic/versions/016_receivables.py`.
+    - Modelos e enums: `almotos-backend/src/almotos_backend/models/{receivable,enums,__init__}.py`.
+    - Contrato: `almotos-backend/src/almotos_backend/{schemas/receivable,services/receivables,routers/receivables,routers/__init__,main}.py`.
+    - Caixa: `almotos-backend/src/almotos_backend/services/store_transactions.py` (nova categoria).
+    - Testes: `almotos-backend/tests/{test_receivables,test_domain}.py`.
+  - Front:
+    - Nova tela: `almotos-front/src/app/receber/page.tsx`, `almotos-front/src/components/receivables/new-receivable-dialog.tsx`, `almotos-front/src/lib/receivables.ts`.
+    - Documentos: `almotos-front/src/components/documents/{PromissoryNotePdf,PaymentBookletPdf,document-preview,documentos-workspace,types}.tsx`, `almotos-front/src/lib/documents.ts`.
+    - Demais: `almotos-front/src/{types/index.ts,lib/api.ts,lib/roles.ts,components/layout/app-sidebar.tsx,app/fluxo-caixa/page.tsx}`.
+  - Raiz: `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **Pai/filho:** `receivable_accounts` é o acordo (1 promissória ou 1 carnê); `receivable_installments` são as parcelas, com `ON DELETE CASCADE`. O `POST /receivables` divide o total em centavos (a sobra do arredondamento vai para a última parcela) e soma 1 mês por parcela a partir do 1º vencimento (dia 31 cai no último dia do mês curto). Também aceita a lista de parcelas pronta, e aí o total é a soma delas.
+  - **Sem conta bancária:** a baixa cria uma ENTRY em `store_transactions` com a nova categoria `RECEBIMENTO_CREDIARIO` e a descrição "Recebimento Parc. X/Y - Cliente (Descrição)". Assim o Fluxo de Caixa e os relatórios veem o dinheiro no dia em que entrou. A categoria é automática: o caixa manual não edita nem cancela esse lançamento, só o estorno da parcela. A conta vira SETTLED quando todas as parcelas estão pagas e volta a ACTIVE no estorno.
+  - **`store_transaction_id` é BIGINT, não UUID:** `store_transactions.id` é BIGINT. A FK é `ON DELETE SET NULL`.
+  - **Cancelar (DELETE) não apaga:** a conta vira CANCELLED e só as parcelas pendentes são canceladas. As pagas continuam no caixa. Estornar uma parcela de conta cancelada a cancela, em vez de voltar a cobrá-la.
+  - **Listagem:** cada linha é uma conta, com parcelas, cliente, moto e os campos calculados (`paidInstallmentsCount`, `remainingAmount`, `nextDueDate`, `hasOverdue`, `maxDaysOverdue`). Filtros OPEN/OVERDUE/DUE_SOON (7 dias)/SETTLED em SQL; busca por nome, CPF/CNPJ, placa, modelo e descrição. Os 4 KPIs do topo vêm de `GET /receivables/summary`, que calcula sobre todas as contas e não só sobre a página.
+  - **RBAC:** `/receivables` exige ADMIN/USER (`require_ops`), como o caixa; `/receber` está bloqueada para FINANCE.
+  - **Documentos:** "Nota promissória" (1 folha A4, com cláusula de confissão de dívida, dados do credor e do emitente, moto de referência e assinaturas do emitente, do credor e de 2 testemunhas) e "Carnê de pagamento" (4 lâminas por A4, canhoto da loja à esquerda e recibo do cliente à direita, separados por linha de corte). `?receivableId=` carrega cliente, moto e as parcelas exatas da conta. Sem conta, o carnê divide o total com a mesma regra do backend. O tipo de documento virou cards no topo da página.
+  - **Desvios do pedido:** a sidebar não tem grupos, então "Contas a Receber" ficou logo abaixo de "Fluxo de Caixa". A categoria se chama `RECEBIMENTO_CREDIARIO` (não `SERVICOS`). O `almotos-mobile` ainda não tem rótulo para ela e mostra o código.
+  - **Validação:** `016_receivables` foi testada com upgrade, downgrade e upgrade num SQLite no schema 015 e gerou SQL limpo para Postgres (`--sql`). Do zero, o Alembic não roda em SQLite (a baseline espera o schema legado do Postgres). `pytest` 248 ok; `tsc --noEmit` limpo.
+
 ## 2026-11-12 — Consulta Veículo (placa + FIPE), OCR de placa e redesign do `almotos-mobile` v0.2.0
 
 - **Arquivos modificados:**
