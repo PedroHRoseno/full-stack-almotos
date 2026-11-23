@@ -2,6 +2,18 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-23 — Aba Motos: filtros agrupados, busca por ano e coluna "vs FIPE"
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/src/almotos_backend/services/vehicles.py`, `almotos-backend/tests/{test_domain,test_local_sqlite}.py`.
+  - Front: `almotos-front/src/app/motos/page.tsx`.
+  - Raiz: `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **Filtros:** os 9 chips soltos viraram 3 grupos segmentados e rotulados (Estoque, Catálogo, Origem). A ordenação ganhou rótulo e um botão "Limpar filtros" quando há filtro ativo. O seletor de itens por página do topo saiu, porque o rodapé já tem um.
+  - **Busca por ano:** em `_name_search_filter`, um termo de 4 dígitos entre 1950 e 2100 também casa com `manufacture_year` ou `model_year`. Os termos continuam somando (AND), então "Pop 2025" traz só as Pop desse ano. O texto segue valendo para placas antigas. O catálogo público usa o mesmo filtro e também passa a aceitar o ano.
+  - **FIPE:** a badge (abaixo/acima/na FIPE) saiu de baixo do preço e virou a coluna "vs FIPE", com o valor da FIPE embaixo.
+  - **Validação:** pytest do backend 253 ok / 2 pulados; `tsc` e eslint do front ok. A tela não foi conferida no navegador.
+
 ## 2026-11-23 — Menos memória no Railway: Chatwoot desligado e boot do backend enxuto
 
 - **Arquivos modificados:**
