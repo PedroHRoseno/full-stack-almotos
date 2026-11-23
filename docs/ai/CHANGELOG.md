@@ -2,6 +2,22 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-23 — Relatório de precificação para o saldão (`GET /reports/sale-pricing`)
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/src/almotos_backend/{schemas/pricing,services/sale_pricing,routers/reports}.py`, `almotos-backend/tests/test_sale_pricing.py`.
+  - Raiz: `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`, `scripts/saldao-novembro/.gitignore`.
+- **Por que:**
+  - **Objetivo:** decidir onde dar desconto no saldão do fim de novembro com dados reais: margem, distância da FIPE, tempo parado e procura.
+  - **Estoque (`stock`):** cada moto `AVAILABLE` com `costBasis`, `margin`, `marginPct`, `priceVsFipePct`, `daysInStock`, `soldSameModel`, `avgDaysToSellSameModel` e `waitingListInterests`. Para a moto própria, `costBasis` = `base_cost` + `vehicle_costs` não apagados. Para a consignada, é `agreed_payout` + custos extras, porque a margem da loja é o que sobra depois do repasse.
+  - **Entrada no estoque:** a compra ou troca ativa mais recente; sem nenhuma das duas, o `created_at`.
+  - **Saídas (`sold`):** vendas e trocas ativas no período (troca = `vehicle_saida_id` a `sale_price_loja`), com `daysToSell`. O lucro vem do `store_profit` da venda; quando não existe (troca), é preço − `costBasis`. `currentSuggestedPrice` é o preço de hoje: o banco não guarda histórico de preço.
+  - **Procura (`interests`):** `vehicle_interests` dos últimos 180 dias, agrupada por marca/modelo/status, só com contagens. Uma moto casa com um interesse pendente quando a marca é igual e um modelo contém o outro.
+  - **Privacidade:** o relatório não traz placa, chassi, Renavam, parceiros nem telefones (há teste para isso).
+  - **RBAC:** fica no router `/reports`, logo exige ADMIN/USER (`require_ops`); FINANCE recebe 403.
+  - **Desvio:** um script de linha de comando para ler o banco direto foi descartado; a leitura é só pelo endpoint, com login feito pelo dono.
+  - **Validação:** `pytest` 251 ok (3 novos sobre o banco de QA em SQLite).
+
 ## 2026-11-13 — Contas a Receber (crediário / promissórias) com baixa no caixa, carnê e nota promissória
 
 - **Arquivos modificados:**

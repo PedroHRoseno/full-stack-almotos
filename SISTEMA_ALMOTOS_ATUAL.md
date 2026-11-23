@@ -556,6 +556,7 @@ Não há CRUD HTTP isolado de tags: upsert ocorre no create/update do veículo.
 | `/reports/dashboard` | KPIs globais |
 | `/reports/financial` | `startDate`, `endDate` (default 30 dias) |
 | `/reports/by-contact` | `partnerId` e/ou `document`, `role`, `ownershipKind`, período |
+| `/reports/sale-pricing` | `historyMonths` (1–60, default 24). Estoque com custo, FIPE, margem e giro; saídas do período; procura da lista de espera. Sem placa, chassi, Renavam, parceiros ou telefones |
 
 O client do admin ainda declara métodos Kotlin antigos (`/sales/search`, `/sales/profit`, …) **sem UI**; o FastAPI **não** replica esses paths.
 
