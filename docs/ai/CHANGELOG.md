@@ -2,6 +2,18 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-23 — Menos memória no Railway: Chatwoot desligado e boot do backend enxuto
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/{Dockerfile,railway.json}`.
+  - Raiz: `docs/ai/CHANGELOG.md`.
+- **Por que:**
+  - **Diagnóstico:** o recibo de 23/10 a 23/11 teve $16,78 só de memória (~1,6 GB contínuos). Nas métricas de 7 dias, o Chatwoot ocupava ~1,1 GB: worker 632 MB, web 418 MB, Postgres 70 MB e Redis 11 MB.
+  - **Chatwoot:** o dono desligou os 4 serviços, porque a caixa omnichannel não está em uso. Sem o Chatwoot, o `almotos-ai-bot` fica ocioso, mas continua no ar. Os volumes foram mantidos.
+  - **Backend:** o `startCommand` e o `CMD` chamam `/app/.venv/bin/{alembic,uvicorn}` direto e sobem o uvicorn com `exec`. Antes, `sh`, `uv run` e o uvicorn ficavam residentes; agora fica só o uvicorn. `MALLOC_ARENA_MAX=2` limita a fragmentação do glibc. O `alembic upgrade head` continua no boot.
+  - **Estimativa:** o uso deve ficar perto dos $5 do Hobby (antes, $17,48).
+  - **Validação:** o build não foi testado localmente (Docker parado); o primeiro deploy no Railway valida.
+
 ## 2026-11-23 — Relatório de precificação para o saldão (`GET /reports/sale-pricing`)
 
 - **Arquivos modificados:**
