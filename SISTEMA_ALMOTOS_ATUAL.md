@@ -509,7 +509,8 @@ Paginação: `page`, `size` (máx. 200 no client), `sort` (ex.: `saleDate,desc`)
 
 | Método | Path | Função |
 |--------|------|--------|
-| GET | `/api/public/vehicles` | `?brand&maxKm&yearMin&q=` — Cache-Control 30s |
+| GET | `/api/public/vehicles` | `?brand&maxKm&yearMin&q=` — Cache-Control 30s. Motos em campanha ativa vêm primeiro; `suggestedPrice` é o preço promocional e `promotion` traz `label`, `theme`, `campaignName`, `endsOn`, `endsAt` e `previousPrice` (só com 30+ dias comprovados). `fipeValue` só vem se a FIPE foi conferida há até 35 dias e o selo não está escondido |
+| GET | `/api/public/campaign` | campanha ativa (`name`, `label`, `theme`, `startsOn`, `endsOn`, `endsAt`, `vehicleCount`) ou `null` |
 | POST | `/api/vehicles/images/upload` | multipart → S3 |
 
 Busca `q`: tokens ILIKE (`honda` AND `start`), não substring contínua.
@@ -526,6 +527,18 @@ Busca `q`: tokens ILIKE (`honda` AND `start`), não substring contínua.
 | GET | `/vehicles/{placa}/history` | compras, vendas, trocas, custos |
 | GET/POST | `/vehicles/{placa}/costs` | custos |
 | DELETE | `/vehicles/{placa}/costs/{id}` | soft-delete |
+| PUT | `/vehicles/{placa}/promotion` | ops. `{campaignId, promoPrice, floorPrice?, declaredReferencePrice?, confirmReference?}`. Preço menor que o normal; "de" pelo histórico (30+ dias) ou declarado com confirmação |
+| DELETE | `/vehicles/{placa}/promotion?campaignId=` | ops. Tira da campanha (não vale para campanha encerrada) |
+
+Ficha (`GET /vehicles/{placa}`) traz também `promotion` (sem `floorPrice` para FINANCE), `priceSince`, `fipeUpdatedAt`, `fipeBadgeHidden` e `fipeBadgeStatus` (VISIBLE, HIDDEN, STALE, NOT_BELOW, NO_FIPE). O `PUT` aceita `fipeBadgeHidden` e `fipeRefreshed`; toda mudança de `suggestedPrice` entra em `vehicle_price_history`.
+
+#### Campanhas
+
+| Método | Path | Função |
+|--------|------|--------|
+| GET/POST | `/campaigns` | ops. Lista / cria (`name`, `label`, `theme` DEFAULT ou BLACK_NOVEMBER, `startsOn`, `endsOn` em dias da loja, UTC-3, último dia inclusivo) |
+| GET/PUT | `/campaigns/{id}` | ops. Resultado (motos, custo, margem no preço da campanha, piso, vendidas no período) / edita (não vale para encerrada) |
+| POST | `/campaigns/{id}/end` | ops. Encerra antes do prazo |
 
 #### FIPE e tags
 
@@ -567,6 +580,7 @@ O client do admin ainda declara métodos Kotlin antigos (`/sales/search`, `/sale
 | GET | `/health` | `{ ok, service, memory: redis \| in-memory }` |
 | GET | `/v1/inventory` | `PublicVehicle[]` |
 | GET | `/v1/inventory/:slug` | detalhe ou 404 |
+| GET | `/v1/campaign` | campanha ativa do SoR (`PublicCampaign` ou `null`), para o tema do catálogo |
 | POST | `/v1/chat` | agent runtime |
 | ALL | `/mcp` | MCP Streamable HTTP |
 
@@ -601,6 +615,7 @@ Resource MCP: `inventory://available`.
 | `/consulta-fipe` | consulta avulsa |
 | `/compras`, `/vendas`, `/trocas` | comércio |
 | `/fluxo-caixa` | movimentações + lançamentos |
+| `/campanhas` | campanhas promocionais (criar, editar, encerrar, resultado com margem e piso). A moto entra pela seção Promoção da ficha |
 | `/receber` | contas a receber: KPIs, filtros, linha expansível com parcelas, baixa e estorno |
 | `/documentos` | contrato, recibo, consignação, nota promissória e carnê (`?type=carne&receivableId=`) |
 | `/relatorios` | financeiro + por contato |

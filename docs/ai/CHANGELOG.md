@@ -2,6 +2,34 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-23 — Painel: tabela de Motos na largura toda em telas grandes
+
+- **Arquivos modificados:**
+  - Front: `almotos-front/src/components/layout/main-content.tsx`.
+  - Raiz: `docs/ai/CHANGELOG.md`.
+- **Por que:** o conteúdo do painel tinha `max-w-[1400px]`, e a tabela de `/motos` ganhava rolagem lateral mesmo com espaço sobrando na tela. Agora só `/motos` fica sem o limite (`max-w-none`); as outras páginas seguem com 1400px. Validado no navegador a 2000px de largura: a tabela coube sem rolagem lateral.
+
+## 2026-11-23 — Campanhas promocionais (Saldão/Black November), "de/por" com 30 dias e controle do selo FIPE
+
+- **Arquivos modificados:**
+  - Backend: `almotos-backend/alembic/versions/017_promotions.py`, `almotos-backend/src/almotos_backend/{models/promotion,models/vehicle,models/__init__,schemas/promotion,schemas/vehicle,services/promotions,services/vehicles,routers/campaigns,routers/vehicles,routers/public_vehicles,routers/__init__,main}.py`, `almotos-backend/tests/{test_promotions,test_http_contract}.py`.
+  - IA: `almotos-ai/src/{contracts/public-vehicle,inventory/kotlin-client,tools/search-inventory,chat/system-prompt,index}.ts`.
+  - Catálogo: `almotos-catalog/src/{app/layout,app/globals.css,app/motos/[slug]/page,components/vehicle-card,components/landing/recent-arrivals,components/promo-price,components/campaign-banner,lib/campaign,lib/catalog,lib/api,lib/types}`.
+  - Painel: `almotos-front/src/{app/api/proxy/[...path]/route,app/campanhas/page,app/motos/[placa]/page,components/vehicle/vehicle-promotion-card,components/forms/form-veiculo,components/layout/app-sidebar,lib/api,lib/roles,types/index}`.
+  - Raiz: `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`, `.claude/launch.json` (QA local).
+- **Por que:**
+  - **Problema:** promoção era feita trocando o `suggested_price` e pondo uma tag pública. O preço normal se perdia, nada voltava sozinho no fim e o "de/por" não tinha como ser comprovado. O selo "abaixo da FIPE" aparecia com FIPE de meses atrás.
+  - **Modelo:** `campaigns` (prazo em dias da loja, UTC-3, e tema visual), `vehicle_promotions` (preço promocional digitado no painel, preço normal do momento, "de" e piso interno) e `vehicle_price_history` (cada mudança de preço, com usuário). Na migração, o preço atual de cada moto entra datado de agora, porque não havia registro de quando foi definido.
+  - **"De/por":** só sai com o preço anterior valendo há 30+ dias antes do início da promoção. Pode vir do histórico (`HISTORY`) ou ser declarado por uma pessoa com confirmação explícita (`DECLARED`, com o usuário gravado).
+  - **Vitrine:** durante a campanha, `suggestedPrice` público é o preço promocional (IA, link do WhatsApp e filtros de preço passam a usar o preço certo sem mudança de contrato) e as motos da campanha vêm primeiro. No fim (prazo ou encerramento manual), tudo volta ao preço normal sem ação manual. Piso, custo e preço normal nunca saem na API pública (ADR-002).
+  - **Selo FIPE:** `fipe_updated_at` muda quando o valor muda ou quando o painel avisa que conferiu (`fipeRefreshed`). Sem data ou com mais de 35 dias, a API pública não manda `fipeValue` e o selo some. `fipe_badge_hidden` esconde o selo numa moto. As motos existentes começam sem data, então o selo some até a FIPE ser conferida no painel.
+  - **Catálogo:** faixa da campanha no topo, selo e preço "de/por" ou "Preço Saldão" com "à vista · até dd/mm" nos cards e na página da moto, e "Ofertas do Saldão" na home. O tema BLACK_NOVEMBER usa dourado e carbono do kit da campanha. Não há página separada.
+  - **IA (regra 3):** o orquestrador só repassa o bloco `promotion` validado por zod. O prompt proíbe calcular desconto e só permite "de/por" quando `previousPrice` vier preenchido.
+  - **Painel:** tela `/campanhas` (bloqueada para FINANCE) e seção Promoção na ficha da moto, com a margem no preço da campanha só para o dono decidir.
+  - **Proxy do painel (`api/proxy/[...path]/route.ts`):** requisição sem corpo (DELETE) ia com `Uint8Array(0)` e o fetch do Node falhava com 502 "fetch failed", inclusive no "excluir custo". Agora o corpo vazio não é enviado.
+  - **Fora do escopo:** o feed da Meta (`/api/catalog/meta-feed.csv`) continua com o preço normal.
+  - **Validação:** pytest do backend 259 ok / 2 pulados (6 novos). `tsc` limpo na IA, no catálogo e no painel; eslint sem erro novo. Teste ponta a ponta local em QA (SQLite): catálogo com faixa, selos, "de/por" e ordem conferidos no navegador.
+
 ## 2026-11-23 — Aba Motos: filtros agrupados, busca por ano e coluna "vs FIPE"
 
 - **Arquivos modificados:**
