@@ -167,7 +167,7 @@ O volume local do Compose **não cria tabelas**. Precisa de dump de produção (
 | **Railway** | backend, ai, bot | Processos + Postgres |
 | **MCP** | `almotos-ai` | Streamable HTTP `/mcp` e stdio (`npm run mcp:stdio`) para Cursor/Inspector |
 
-**Não há** gateway de pagamento, PIX, boleto nem cálculo de financiamento no sistema. Condições (“48x / cartão 18x”) são copy informativo; simulação vai para WhatsApp humano.
+**Não há** gateway de pagamento, PIX, boleto nem cálculo de financiamento no sistema. Condições (“48x / cartão 21x”) são copy informativo; simulação vai para WhatsApp humano.
 
 Nome histórico: a env `KOTLIN_BASE_URL` no `almotos-ai` e no catálogo **aponta para o FastAPI** (`https://api.almotoscaruaru.com.br` ou `http://localhost:8081`). O cliente HTTP ainda se chama `kotlin-client.ts`.
 
@@ -890,7 +890,7 @@ Runtime de OpenAI/Chatwoot/DB **não** entra na pipeline — fica nos painéis R
 
 - Locação/aluguel de motos.
 - Pagamentos online, boleto, PIX, gateway.
-- Cálculo de parcela/financiamento (copy 48x/18x + handoff humano).
+- Cálculo de parcela/financiamento (copy 48x/21x + handoff humano).
 - Oficina, revisão, estoque de peças.
 - Segundo writer no Postgres ou Redis de inventário.
 - Kotlin como API viva no mesmo banco.

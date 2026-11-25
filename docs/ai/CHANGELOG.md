@@ -2,6 +2,13 @@
 
 Memória contínua do agente (ADR-005). Entradas em ordem inversa (mais recente primeiro).
 
+## 2026-11-25 — Catálogo: cartão em até 21x (era 18x)
+
+- **Arquivos modificados:**
+  - Catálogo: `almotos-catalog/src/app/motos/[slug]/page.tsx`, `almotos-catalog/src/components/site-footer.tsx`.
+  - Raiz: `SISTEMA_ALMOTOS_ATUAL.md`, `docs/ai/CHANGELOG.md`.
+- **Por que:** a página da moto e o rodapé do catálogo diziam "cartão em até 18x", enquanto o prompt do `almotos-ai`, o Design System e as legendas da campanha usam 21x (condição vigente confirmada pela loja). Só texto informativo; nada calcula parcela.
+
 ## 2026-11-23 — Painel: tabela de Motos na largura toda em telas grandes
 
 - **Arquivos modificados:**
